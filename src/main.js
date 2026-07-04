@@ -92,6 +92,7 @@ function showNotionChoice(result, isbn) {
   btnRow.appendChild(btnNotion);
   btnRow.appendChild(btnAdd);
   statusEl.appendChild(btnRow);
+  btnNotion.focus();
 
   document.getElementById('btn-lookup').disabled = false;
 }
@@ -133,6 +134,7 @@ function showDuplicateOnSendChoice(result) {
 
   btnRow.append(btnUpdate, btnCreate, btnCancel);
   notionStatus.appendChild(btnRow);
+  btnUpdate.focus();
 }
 
 // ── ISBN input ──────────────────────────────────────────────────────────────
@@ -224,12 +226,18 @@ document.addEventListener('click', e => {
 
 // Barre de navigation bas de page
 document.getElementById('btn-toggle-devlog').addEventListener('click', () => {
-  document.getElementById('doc-panel').style.display = 'none';
-  document.getElementById('config-panel').style.display = 'none';
+  const docPanel = document.getElementById('doc-panel');
+  const configPanel = document.getElementById('config-panel');
+  docPanel.style.display = 'none';
+  docPanel.setAttribute('aria-hidden', 'true');
+  configPanel.style.display = 'none';
+  configPanel.setAttribute('aria-hidden', 'true');
   toggleDevlog();
 });
 document.getElementById('btn-toggle-config').addEventListener('click', () => {
-  document.getElementById('doc-panel').style.display = 'none';
+  const docPanel = document.getElementById('doc-panel');
+  docPanel.style.display = 'none';
+  docPanel.setAttribute('aria-hidden', 'true');
   toggleConfig();
 });
 document.getElementById('btn-close-devlog').addEventListener('click', toggleDevlog);
@@ -237,9 +245,14 @@ document.getElementById('btn-close-devlog').addEventListener('click', toggleDevl
 function toggleDoc() {
   const panel = document.getElementById('doc-panel');
   const isVisible = panel.style.display !== 'none';
-  document.getElementById('devlog').style.display = 'none';
-  document.getElementById('config-panel').style.display = 'none';
+  const devlog = document.getElementById('devlog');
+  const config = document.getElementById('config-panel');
+  devlog.style.display = 'none';
+  devlog.setAttribute('aria-hidden', 'true');
+  config.style.display = 'none';
+  config.setAttribute('aria-hidden', 'true');
   panel.style.display = isVisible ? 'none' : 'block';
+  panel.setAttribute('aria-hidden', isVisible ? 'true' : 'false');
 }
 document.getElementById('btn-toggle-doc').addEventListener('click', toggleDoc);
 document.getElementById('btn-close-doc').addEventListener('click', toggleDoc);

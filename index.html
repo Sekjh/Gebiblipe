@@ -16,7 +16,7 @@
       <input type="text" id="isbn-input" placeholder="Saisir l'ISBN…" inputmode="numeric">
       <button id="btn-lookup">Rechercher</button>
     </div>
-    <p id="status" class="status"></p>
+    <p id="status" class="status" aria-live="polite" aria-atomic="true"></p>
   </div>
 
   <div id="form-section">
@@ -29,7 +29,7 @@
         <div style="flex:1">
           <p style="font-size:13px;font-weight:500;line-height:1.4;" id="found-title"></p>
           <div class="source-popover-wrap">
-            <button class="source-badge" id="source-badge"></button>
+            <button class="source-badge" id="source-badge" aria-haspopup="true" aria-label="Sources bibliographiques"></button>
             <div class="source-popover" id="source-popover" hidden></div>
           </div>
           <p style="font-size:12px;color:var(--muted);margin-top:6px;">Modifie les champs si nécessaire.</p>
@@ -40,49 +40,49 @@
     <div class="card">
       <p class="section-title">Données bibliographiques</p>
       <div class="grid2">
-        <div class="field full"><label>Titre <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-titre"></div>
-        <div class="field full"><label>Auteur(s) <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-auteur"></div>
-        <div class="field"><label>Nationalité de l'auteur <span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-nationalite" placeholder="ex. Français, Allemand…"></div>
-        <div class="field"><label>Éditeur <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-editeur"></div>
-        <div class="field"><label>Collection <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-collection-ed"></div>
-        <div class="field"><label>Publication originale <span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-datepub" placeholder="ex. 1739"></div>
-        <div class="field"><label>Date de cette édition <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-dateed" placeholder="ex. 2025"></div>
-        <div class="field"><label>Nombre de pages <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-pages"></div>
-        <div class="field"><label>ISBN</label><input type="text" id="f-isbn" readonly style="opacity:0.5"></div>
+        <div class="field full"><label for="f-titre">Titre <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-titre"></div>
+        <div class="field full"><label for="f-auteur">Auteur(s) <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-auteur"></div>
+        <div class="field"><label for="f-nationalite">Nationalité de l'auteur <span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-nationalite" placeholder="ex. Français, Allemand…"></div>
+        <div class="field"><label for="f-editeur">Éditeur <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-editeur"></div>
+        <div class="field"><label for="f-collection-ed">Collection <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-collection-ed"></div>
+        <div class="field"><label for="f-datepub">Publication originale <span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-datepub" placeholder="ex. 1739"></div>
+        <div class="field"><label for="f-dateed">Date de cette édition <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-dateed" placeholder="ex. 2025"></div>
+        <div class="field"><label for="f-pages">Nombre de pages <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-pages"></div>
+        <div class="field"><label for="f-isbn">ISBN</label><input type="text" id="f-isbn" readonly style="opacity:0.5"></div>
       </div>
     </div>
 
     <div class="card">
       <p class="section-title">Classification thématique</p>
       <div class="grid2">
-        <div class="field"><label>Thème <span class="lbl-src lbl-src--ia">IA</span><span class="lbl-src lbl-src--notion">Notion</span></label><select id="f-theme"></select></div>
-        <div class="field"><label>Sous-thème <span class="lbl-src lbl-src--ia">IA</span><span class="lbl-src lbl-src--notion">Notion</span></label><select id="f-soustheme"></select></div>
+        <div class="field"><label for="f-theme">Thème <span class="lbl-src lbl-src--ia">IA</span><span class="lbl-src lbl-src--notion">Notion</span></label><select id="f-theme"></select></div>
+        <div class="field"><label for="f-soustheme">Sous-thème <span class="lbl-src lbl-src--ia">IA</span><span class="lbl-src lbl-src--notion">Notion</span></label><select id="f-soustheme"></select></div>
       </div>
       <button class="outline" id="btn-suggest-theme" style="height:34px;font-size:12px;margin-top:4px;">
         ✦ Suggérer via IA
       </button>
-      <p id="theme-ai-status" class="status" style="font-size:11px;"></p>
+      <p id="theme-ai-status" class="status" style="font-size:11px;" aria-live="polite" aria-atomic="true"></p>
     </div>
 
     <div class="card">
       <p class="section-title">Statut & lecture</p>
       <div class="grid2">
         <div class="field">
-          <label>Statut <span class="lbl-src lbl-src--notion">Notion</span></label>
+          <label for="f-statut">Statut <span class="lbl-src lbl-src--notion">Notion</span></label>
           <select id="f-statut">
             <option>À lire</option><option>En cours</option><option>Lu</option><option>Étude</option><option>Collection</option><option>Néant</option>
           </select>
         </div>
         <div class="field" id="priorite-block">
-          <label>Priorité de lecture</label>
+          <label for="f-priorite">Priorité de lecture</label>
           <select id="f-priorite">
             <option value="">—</option><option>Haute</option><option>Moyenne</option><option>Basse</option>
           </select>
         </div>
         <div class="field hidden" id="datelu-block">
-          <label>Date de lecture</label>
+          <label for="f-datelu-mois">Date de lecture</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <select id="f-datelu-mois">
+            <select id="f-datelu-mois" aria-label="Mois de lecture">
               <option value="">— Mois —</option>
               <option value="Janvier">Janvier</option>
               <option value="Février">Février</option>
@@ -97,20 +97,20 @@
               <option value="Novembre">Novembre</option>
               <option value="Décembre">Décembre</option>
             </select>
-            <select id="f-datelu-annee">
+            <select id="f-datelu-annee" aria-label="Année de lecture">
               <option value="">— Année —</option>
             </select>
           </div>
         </div>
         <div class="field hidden" id="note-block">
-          <label>Note</label>
+          <label for="f-note">Note</label>
           <select id="f-note">
             <option value="">—</option>
             <option>★★★★★</option><option>★★★★☆</option><option>★★★☆☆</option><option>★★☆☆☆</option><option>★☆☆☆☆</option>
           </select>
         </div>
         <div class="field full" id="fiche-block" style="grid-column:1/-1;">
-          <label>Fiche de lecture <span class="lbl-src lbl-src--ia">IA</span><span class="lbl-src lbl-src--notion">Notion</span></label>
+          <label for="f-fiche">Fiche de lecture <span class="lbl-src lbl-src--ia">IA</span><span class="lbl-src lbl-src--notion">Notion</span></label>
           <textarea id="f-fiche" rows="3" placeholder="Flashcard de lecture…"></textarea>
           <button class="outline" id="btn-generate-fiche" style="height:34px;font-size:12px;margin-top:6px;">
             ✦ Générer via IA
@@ -118,7 +118,7 @@
           <button class="outline" id="btn-clear-fiche" style="height:34px;font-size:12px;margin-top:4px;color:var(--muted);">
             Effacer
           </button>
-          <p id="fiche-ai-status" class="status" style="font-size:11px;"></p>
+          <p id="fiche-ai-status" class="status" style="font-size:11px;" aria-live="polite" aria-atomic="true"></p>
         </div>
       </div>
     </div>
@@ -126,7 +126,7 @@
     <div class="card">
       <p class="section-title">Citations</p>
       <div class="field">
-        <label>Citations extraites du livre <span class="lbl-src lbl-src--notion">Notion</span></label>
+        <label for="f-citations">Citations extraites du livre <span class="lbl-src lbl-src--notion">Notion</span></label>
         <textarea id="f-citations" rows="4" placeholder="« … » (p. XX)&#10;&#10;Une citation par bloc, format libre."></textarea>
       </div>
     </div>
@@ -135,7 +135,7 @@
       <p class="section-title">État physique & collection</p>
       <div class="grid2">
         <div class="field">
-          <label>État du livre</label>
+          <label for="f-etat">État du livre</label>
           <select id="f-etat">
             <option value="">—</option><option>Neuf</option><option>Très bon</option><option>Bon</option><option>Correct</option><option>Abîmé</option>
           </select>
@@ -146,7 +146,7 @@
         </div>
         <p id="collection-hint" style="grid-column:1/-1;font-size:11px;color:var(--muted);margin-top:-6px;"></p>
         <div class="field full">
-          <label>Commentaire <span class="lbl-src lbl-src--notion">Notion</span></label>
+          <label for="f-comment">Commentaire <span class="lbl-src lbl-src--notion">Notion</span></label>
           <textarea id="f-comment" rows="3" placeholder="Notes personnelles…"></textarea>
         </div>
       </div>
@@ -155,32 +155,32 @@
     <button id="btn-send-notion" style="margin-bottom:1rem;">
       Envoyer dans Notion
     </button>
-    <p id="notion-status" class="status" style="text-align:center;"></p>
+    <p id="notion-status" class="status" style="text-align:center;" aria-live="polite" aria-atomic="true"></p>
   </div>
 </div>
 
 <!-- Config -->
-<div id="config-panel" style="display:none;max-width:600px;margin:0 auto 1rem;padding:0 1rem;">
+<div id="config-panel" style="display:none;max-width:600px;margin:0 auto 1rem;padding:0 1rem;" aria-hidden="true">
   <div class="card">
     <p class="section-title">Configuration</p>
     <div class="field">
-      <label>Clé API Anthropic (pour les suggestions IA)</label>
+      <label for="cfg-anthropic">Clé API Anthropic (pour les suggestions IA)</label>
       <input type="password" id="cfg-anthropic" placeholder="sk-ant-…" style="font-family:monospace;font-size:13px;">
     </div>
     <div class="field">
-      <label>URL du proxy Cloudflare</label>
+      <label for="cfg-proxy">URL du proxy Cloudflare</label>
       <input type="text" id="cfg-proxy" placeholder="https://xxx.workers.dev" style="font-family:monospace;font-size:13px;">
     </div>
     <div class="field">
-      <label>Token d'intégration</label>
+      <label for="cfg-token">Token d'intégration</label>
       <input type="password" id="cfg-token" placeholder="secret_…" style="font-family:monospace;font-size:13px;">
     </div>
     <div class="field">
-      <label>Database ID</label>
+      <label for="cfg-dbid">Database ID</label>
       <input type="text" id="cfg-dbid" placeholder="URL Notion complète ou ID seul (32 caractères)" style="font-family:monospace;font-size:13px;">
     </div>
     <div class="field">
-      <label>Moteur de recherche ISBN</label>
+      <label for="cfg-engine">Moteur de recherche ISBN</label>
       <select id="cfg-engine">
         <option value="bnf">BnF — Bibliothèque nationale de France (recommandé)</option>
         <option value="openlibrary">OpenLibrary</option>
@@ -191,7 +191,7 @@
       Ces informations sont stockées uniquement sur cet appareil (localStorage). Elles ne sont jamais transmises à nos serveurs.
     </p>
     <button id="btn-save-config">Vérifier et enregistrer</button>
-    <p id="config-status" class="status" style="text-align:center;margin-top:6px;"></p>
+    <p id="config-status" class="status" style="text-align:center;margin-top:6px;" aria-live="polite" aria-atomic="true"></p>
   </div>
 </div>
 
@@ -208,11 +208,11 @@
   </button>
 </div>
 
-<div id="devlog" style="display:none;max-width:600px;margin:0 auto 2rem;padding:0 1rem;">
+<div id="devlog" style="display:none;max-width:600px;margin:0 auto 2rem;padding:0 1rem;" aria-hidden="true">
   <div style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
     <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;font-weight:600;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;">Changelog</span>
-      <button id="btn-close-devlog" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;width:auto;height:auto;padding:0 4px;line-height:1;">✕</button>
+      <button id="btn-close-devlog" aria-label="Fermer le changelog" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;width:auto;height:auto;padding:0 4px;line-height:1;">✕</button>
     </div>
         <div style="font-size:12px;line-height:1.8;">
       <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
@@ -248,11 +248,11 @@
 </div>
 
 <!-- Documentation -->
-<div id="doc-panel" style="display:none;max-width:600px;margin:0 auto 2rem;padding:0 1rem;">
+<div id="doc-panel" style="display:none;max-width:600px;margin:0 auto 2rem;padding:0 1rem;" aria-hidden="true">
   <div class="card">
     <div style="padding-bottom:0.75rem;margin-bottom:0.75rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;font-weight:600;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase;">Documentation</span>
-      <button id="btn-close-doc" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;width:auto;height:auto;padding:0 4px;line-height:1;">✕</button>
+      <button id="btn-close-doc" aria-label="Fermer la documentation" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;width:auto;height:auto;padding:0 4px;line-height:1;">✕</button>
     </div>
 
     <h3 class="doc-section-title">Fonctionnalités</h3>
