@@ -6,6 +6,18 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+- ESLint 9 (flat config) : lint du code source avec `npm run lint` — règles qualité, sécurité statique (no-eval, no-implied-eval, eqeqeq, prefer-const, no-var, no-unused-vars)
+- axe-core : tests d'accessibilité RGAA automatisés via Vitest/jsdom (`tests/unit/accessibility.test.js`, 5 tests WCAG 2.0/2.1 AA)
+
+### Fixed
+- Accessibilité (RGAA) : `aria-live="polite" aria-atomic="true"` sur les 5 zones de statut dynamique
+- Accessibilité (RGAA) : `aria-hidden="true"` initial sur les panneaux masqués (`#config-panel`, `#devlog`, `#doc-panel`) et synchronisation dans les fonctions toggle JS
+- Accessibilité (RGAA) : attribut `for` ajouté sur tous les labels de formulaire (23 champs)
+- Accessibilité (RGAA) : `aria-label` sur les boutons ✕ et `aria-haspopup` + `aria-label` sur `#source-badge`
+- Accessibilité (RGAA) : focus déplacé sur le premier bouton après injection dynamique (`showNotionChoice`, `showDuplicateOnSendChoice`)
+- Sécurité : `encodeURIComponent()` sur le paramètre ISBN dans l'URL Google Books
+
 ---
 
 ## [0.54.0] — 2026-06-28

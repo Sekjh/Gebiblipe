@@ -59,6 +59,29 @@ Pour chaque tâche de développement, dans cet ordre :
 
 **1. Coder le changement**
 
+**1b. Auto-contrôle qualité/RGAA/sécurité** — avant de passer au CHANGELOG, parcourir les checklists qui s'appliquent :
+
+> **Si HTML modifié ou ajouté :**
+> - [ ] Chaque `<button>` avec uniquement un symbole/emoji a un `aria-label`
+> - [ ] Chaque `<input>`, `<select>`, `<textarea>` a un `<label for="...">` associé
+> - [ ] Chaque `<img>` a un `alt` descriptif (ou `alt=""` si décoratif)
+> - [ ] Tout panneau masqué initialement par `display:none` a `aria-hidden="true"`
+> - [ ] Tout élément de statut dynamique a `aria-live="polite" aria-atomic="true"`
+>
+> **Si JavaScript DOM modifié ou ajouté :**
+> - [ ] Toute fonction qui affiche/masque un panneau synchronise `aria-hidden` (`setAttribute('aria-hidden', 'true'/'false')`)
+> - [ ] Tout élément interactif créé dynamiquement a un nom accessible (texte visible ou `aria-label`)
+> - [ ] Après injection d'éléments focusables dans le DOM, le focus est déplacé sur le premier élément pertinent (`.focus()`)
+>
+> **Si `fetch()` vers une API externe modifié ou ajouté :**
+> - [ ] Les valeurs utilisateur dans l'URL sont encodées avec `encodeURIComponent()`
+> - [ ] La réponse est validée (`res.ok`) avant d'accéder à ses propriétés
+> - [ ] Les propriétés imbriquées sont accédées avec `?.` ou une vérification préalable
+>
+> **Si nouvelle fonction ou nouveau module :**
+> - [ ] Pas de `var`, pas d'`eval` / `Function()` / `innerHTML` sur contenu externe
+> - [ ] Si un ID ou une chaîne répétée apparaît 3+ fois, la centraliser
+
 **2. Mettre à jour `CHANGELOG.md`** — section `[Unreleased]`, catégorie appropriée :
 - `### Added` : nouveauté
 - `### Changed` : modification de comportement existant
@@ -80,6 +103,24 @@ Ne pas modifier `index.html` version ni créer de tag git.
 ## Protocole — Release (sur demande explicite uniquement)
 
 Déclenché quand le mainteneur dit « release », « mettre en production », « merger sur main » ou « créer une version ».
+
+**0. Vérification avant release** ← exécuter en premier, avant toute autre étape
+
+```bash
+npm run test:coverage   # 0 échec requis — ouvrir coverage/index.html si régression
+npm run lint            # 0 erreur ESLint requise (warnings acceptables)
+npm audit --audit-level=high  # 0 vulnérabilité high ou critical
+```
+
+> `npm test` inclut `accessibility.test.js` — vérifier que les 5 tests RGAA passent.
+>
+> **Critères bloquants :** si une commande échoue, corriger sur `dev`, committer, relancer l'étape 0 intégralement.
+>
+> **Revue manuelle :**
+> - [ ] Tout bouton dynamique créé depuis la release précédente a un nom accessible
+> - [ ] Tout nouveau panneau masqué a `aria-hidden="true"` + toggle synchronisé
+> - [ ] Toute valeur passée dans une URL d'API externe est encodée avec `encodeURIComponent`
+> - [ ] Les réponses d'API externe sont validées avant accès aux propriétés
 
 **1. Déterminer le prochain numéro**
 - Au moins un `feat:` dans `[Unreleased]` → MINOR (+1), PATCH revient à 0
@@ -156,8 +197,37 @@ npm run test:coverage
 
 ---
 
+## Standards qualité, accessibilité RGAA, sécurité
+
+Ces règles s'appliquent à **chaque modification de code**. Les checklists détaillées sont dans la section `## Protocole — Développement ordinaire` (étape 1b). Résumé des principes :
+
+### Qualité du code
+
+- **Pas de `var`** — utiliser `const` ou `let`.
+- **Égalité stricte** — `===` et `!==` uniquement.
+- **Pas d'`eval`, `Function()`, `innerHTML` sur contenu externe** — risque d'injection.
+- **Lint avant commit** : `npm run lint` — zéro erreur requise.
+- **Variables et imports** : supprimer tout ce qui est déclaré mais inutilisé.
+
+### Accessibilité RGAA
+
+- Tout `<button>` avec symbole/emoji uniquement → `aria-label` obligatoire.
+- Tout `<input>`, `<select>`, `<textarea>` → `<label for="...">` associé.
+- Tout élément de statut dynamique → `aria-live="polite" aria-atomic="true"`.
+- Tout panneau masqué (`display:none`) → `aria-hidden="true"` + sync dans les toggles JS.
+- Éléments focusables injectés dynamiquement → déplacer le focus (`.focus()`).
+- Éléments dans ce projet à maintenir : voir liste dans `index.html` (commentaires inline).
+
+### Sécurité
+
+- Valeurs utilisateur dans les URLs d'API → `encodeURIComponent()` obligatoire.
+- Réponses API externes → valider `res.ok` et l'existence des propriétés avant accès.
+- Clés API et tokens → `localStorage` uniquement, jamais logguées en console.
+
+---
+
 ## Git — Exécutable
 
 ```powershell
-$git = "C:\Users\gauth\AppData\Local\GitHubDesktop\app-3.5.12\resources\app\git\cmd\git.exe"
+$git = "C:\Users\gauth\AppData\Local\GitHubDesktop\app-3.6.2\resources\app\git\cmd\git.exe"
 ```
