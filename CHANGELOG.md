@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.54.1] — 2026-07-04
+
 ### Added
 - ESLint 9 (flat config) : lint du code source avec `npm run lint` — règles qualité, sécurité statique (no-eval, no-implied-eval, eqeqeq, prefer-const, no-var, no-unused-vars)
 - axe-core : tests d'accessibilité RGAA automatisés via Vitest/jsdom (`tests/unit/accessibility.test.js`, 5 tests WCAG 2.0/2.1 AA)
@@ -174,7 +178,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.0...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.1...HEAD
+[0.54.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.0...v0.54.1
 [0.54.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.53.0...v0.54.0
 [0.53.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.52.0...v0.53.0
 [0.52.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.51.0...v0.52.0
