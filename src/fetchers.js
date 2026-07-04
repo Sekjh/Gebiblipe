@@ -25,7 +25,7 @@ export async function fetchBnF(raw, b) {
       b.editeur=gf('210','c')||gf('214','c'); b.dateed=gf('210','d')||gf('214','d');
       b.collection=gf('225','a'); b.pages=gf('215','a');
       if(b.titre) { b.source = (isbn === raw) ? 'BnF ISBN-13' : 'BnF ISBN-10'; return; }
-    } catch(e) {}
+    } catch { /* swallow: erreur réseau ou timeout */ }
   }
 }
 
@@ -44,12 +44,12 @@ export async function fetchOpenLibrary(raw, b) {
       b.editeur=det.publishers?.[0]||''; b.dateed=det.publish_date||''; b.pages=det.number_of_pages||'';
       if(entry.thumbnail_url) b.couverture=entry.thumbnail_url.replace('-S.','-M.');
       if(b.titre) { b.source = (isbn === raw) ? 'OpenLibrary ISBN-13' : 'OpenLibrary ISBN-10'; return; }
-    } catch(e) {}
+    } catch { /* swallow: erreur réseau ou timeout */ }
   }
 }
 
 export async function fetchGoogle(raw, b) {
-  const g=await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=isbn:${raw}`).then(r=>r.json());
+  const g=await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(raw)}`).then(r=>r.json());
   if(!g.items?.length) return;
   const v=g.items[0].volumeInfo;
   b.titre=v.title||''; b.auteur=v.authors?.join(', ')||''; b.editeur=v.publisher||'';
@@ -69,7 +69,7 @@ export async function fetchCover(raw) {
       if (res.ok && parseInt(res.headers.get('content-length') || '9999') > 1000) {
         return url;
       }
-    } catch(e) {}
+    } catch { /* swallow: erreur réseau ou timeout */ }
   }
   return null;
 }

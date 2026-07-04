@@ -11,7 +11,7 @@ function mapNotionToBook(page) {
   const p = page.properties || {};
   const txt  = key => p[key]?.rich_text?.[0]?.plain_text || '';
   const ttl  = key => p[key]?.title?.[0]?.plain_text || '';
-  const num  = key => p[key]?.number != null ? String(p[key].number) : '';
+  const num  = key => p[key]?.number !== null && p[key]?.number !== undefined ? String(p[key].number) : '';
   const sel  = key => p[key]?.select?.name || '';
   const chk  = key => p[key]?.checkbox || false;
 
@@ -168,6 +168,7 @@ export function toggleConfig() {
   const p = document.getElementById('config-panel');
   const visible = p.style.display !== 'none';
   p.style.display = visible ? 'none' : 'block';
+  p.setAttribute('aria-hidden', visible ? 'true' : 'false');
   if (!visible) {
     const cfg = getConfig();
     document.getElementById('cfg-anthropic').value = cfg.anthropicKey;

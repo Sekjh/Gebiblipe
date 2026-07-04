@@ -61,7 +61,9 @@ export function toggleLu() {
 
 export function toggleDevlog() {
   const d = document.getElementById('devlog');
-  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+  const opening = d.style.display === 'none';
+  d.style.display = opening ? 'block' : 'none';
+  d.setAttribute('aria-hidden', opening ? 'false' : 'true');
 }
 
 export function detectCollection(b) {
@@ -279,7 +281,7 @@ export async function lookup(isbnArg = '') {
   document.getElementById('form-section').style.display = 'none';
 
   const engine = localStorage.getItem('search_engine') || 'bnf';
-  let b = { isbn: raw, titre: '', auteur: '', editeur: '', collection: '', dateed: '', pages: '', couverture: '', source: '' };
+  const b = { isbn: raw, titre: '', auteur: '', editeur: '', collection: '', dateed: '', pages: '', couverture: '', source: '' };
 
   const all = [fetchBnF, fetchOpenLibrary, fetchGoogle];
   const preferred = { bnf: fetchBnF, openlibrary: fetchOpenLibrary, google: fetchGoogle };
@@ -307,7 +309,7 @@ export async function lookup(isbnArg = '') {
     try {
       await fetcher(raw, tmp);
       logStatus = tmp.source ? 'trouvé' : 'non_trouvé';
-    } catch(e) {
+    } catch {
       logStatus = 'erreur';
     }
     const contributed = [];
