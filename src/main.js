@@ -1,5 +1,5 @@
 import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources } from './ui.js';
-import { sendToNotion, saveConfig, toggleConfig, lookupFromNotion, setCurrentPageId, clearCurrentPageId, getCurrentPageId } from './notion.js';
+import { sendToNotion, saveConfig, toggleConfig, lookupFromNotion, setCurrentPageId, clearCurrentPageId, getCurrentPageId, updateConfigWarning } from './notion.js';
 import { validateIsbn } from './isbn.js';
 import { getConfig } from './config.js';
 
@@ -13,6 +13,7 @@ for (let y = now; y >= 1980; y--) {
 }
 
 initThemes();
+updateConfigWarning();
 
 // ── Pré-vérification Notion puis recherche ─────────────────────────────────
 async function startSearch(isbn) {

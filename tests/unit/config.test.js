@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { localStorageStub } from '../helpers/localStorage.js';
-import { getConfig, notionUrl, notionHeaders } from '../../src/config.js';
+import { getConfig, notionUrl, notionHeaders, getMissingConfigKeys } from '../../src/config.js';
 
 beforeEach(() => {
   localStorageStub.clear();
@@ -26,6 +26,24 @@ describe('getConfig', () => {
     expect(cfg.dbId).toBe('db123');
     expect(cfg.proxy).toBe('https://proxy.example.com');
     expect(cfg.anthropicKey).toBe('sk-ant-xyz');
+  });
+});
+
+describe('getMissingConfigKeys', () => {
+  test('retourne les 3 clés requises quand tout manque', () => {
+    expect(getMissingConfigKeys({ token: '', dbId: '', proxy: '' })).toEqual(['token', 'dbId', 'proxy']);
+  });
+
+  test("retourne un tableau vide quand tout est présent (anthropicKey non requis)", () => {
+    expect(getMissingConfigKeys({ token: 'ntn_abc', dbId: 'db123', proxy: 'https://proxy.example.com' })).toEqual([]);
+  });
+
+  test('ne signale que la clé manquante', () => {
+    expect(getMissingConfigKeys({ token: 'ntn_abc', dbId: '', proxy: 'https://proxy.example.com' })).toEqual(['dbId']);
+  });
+
+  test("l'absence d'anthropicKey n'est jamais signalée", () => {
+    expect(getMissingConfigKeys({ token: 'ntn_abc', dbId: 'db123', proxy: 'https://proxy.example.com', anthropicKey: '' })).toEqual([]);
   });
 });
 

@@ -16,7 +16,7 @@ const queryTwo        = JSON.parse(readFileSync(join(fixturesDir, 'notion-query-
 
 import {
   lookupFromNotion, syncDatabaseProps, doSend, updatePageFull, sendToNotion,
-  setCurrentPageId, clearCurrentPageId,
+  setCurrentPageId, clearCurrentPageId, updateConfigWarning,
 } from '../../src/notion.js';
 
 const CFG = { token: 'ntn_x', dbId: 'abcdef1234567890abcdef1234567890', proxy: '' };
@@ -308,5 +308,45 @@ describe('sendToNotion — routage', () => {
     await sendToNotion();
     expect(document.getElementById('notion-status').textContent).toContain('Configure');
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+// ─── updateConfigWarning ───────────────────────────────────────────────────────
+
+describe('updateConfigWarning', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<button id="btn-toggle-config">⚙ configuration</button>';
+    localStorage.clear();
+  });
+
+  test('ajoute une pastille et un aria-label quand la configuration est incomplète', () => {
+    updateConfigWarning();
+    const btn = document.getElementById('btn-toggle-config');
+    expect(document.getElementById('config-warn-dot')).toBeTruthy();
+    expect(btn.getAttribute('aria-label')).toContain('incomplète');
+  });
+
+  test("n'ajoute pas de pastille quand la configuration est complète", () => {
+    localStorage.setItem('notion_token', 'ntn_testtoken');
+    localStorage.setItem('notion_dbid', 'abcdef1234567890abcdef1234567890');
+    localStorage.setItem('notion_proxy', 'https://proxy.test');
+    updateConfigWarning();
+    const btn = document.getElementById('btn-toggle-config');
+    expect(document.getElementById('config-warn-dot')).toBeFalsy();
+    expect(btn.hasAttribute('aria-label')).toBe(false);
+  });
+
+  test('retire la pastille et le aria-label une fois la configuration complétée', () => {
+    updateConfigWarning();
+    expect(document.getElementById('config-warn-dot')).toBeTruthy();
+
+    localStorage.setItem('notion_token', 'ntn_testtoken');
+    localStorage.setItem('notion_dbid', 'abcdef1234567890abcdef1234567890');
+    localStorage.setItem('notion_proxy', 'https://proxy.test');
+    updateConfigWarning();
+
+    const btn = document.getElementById('btn-toggle-config');
+    expect(document.getElementById('config-warn-dot')).toBeFalsy();
+    expect(btn.hasAttribute('aria-label')).toBe(false);
   });
 });

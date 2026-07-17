@@ -1,4 +1,4 @@
-import { getConfig, notionUrl, notionHeaders } from './config.js';
+import { getConfig, notionUrl, notionHeaders, getMissingConfigKeys } from './config.js';
 import { EXPECTED_PROPS, propSchema } from './themes.js';
 
 // Mode création (null) ou mise à jour (pageId de la page existante)
@@ -119,6 +119,26 @@ export async function syncDatabaseProps(token, dbId, cfg) {
   return { ok: true, created, conflicts };
 }
 
+export function updateConfigWarning() {
+  const btn = document.getElementById('btn-toggle-config');
+  if (!btn) return;
+  const missing = getMissingConfigKeys(getConfig());
+  let dot = document.getElementById('config-warn-dot');
+  if (missing.length > 0) {
+    if (!dot) {
+      dot = document.createElement('span');
+      dot.id = 'config-warn-dot';
+      dot.className = 'config-warn-dot';
+      dot.setAttribute('aria-hidden', 'true');
+      btn.appendChild(dot);
+    }
+    btn.setAttribute('aria-label', '⚙ configuration — configuration Notion incomplète');
+  } else {
+    if (dot) dot.remove();
+    btn.removeAttribute('aria-label');
+  }
+}
+
 export async function saveConfig() {
   const token = document.getElementById('cfg-token').value.trim();
   let dbRaw   = document.getElementById('cfg-dbid').value.trim();
@@ -162,6 +182,7 @@ export async function saveConfig() {
   if (result.created.length === 0 && result.conflicts.length === 0) msg += ' Toutes les propriétés sont à jour.';
   statusEl.textContent = msg;
   statusEl.style.whiteSpace = 'normal';
+  updateConfigWarning();
 }
 
 export function toggleConfig() {

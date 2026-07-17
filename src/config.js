@@ -7,6 +7,14 @@ export function getConfig() {
   };
 }
 
+export function getMissingConfigKeys(cfg) {
+  const missing = [];
+  if (!cfg.token) missing.push('token');
+  if (!cfg.dbId)  missing.push('dbId');
+  if (!cfg.proxy) missing.push('proxy');
+  return missing;
+}
+
 export function notionUrl(path, cfg) {
   const base = cfg.proxy ? cfg.proxy.replace(/\/$/, '') : 'https://api.notion.com';
   return base + path;
