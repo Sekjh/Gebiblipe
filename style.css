@@ -1,6 +1,7 @@
 :root {
   --bg: #ffffff; --bg2: #f7f6f3; --border: #e5e4e0;
   --text: #1a1a1a; --muted: #666; --radius: 8px; --input-h: 38px;
+  --src-bnf: #2563eb; --src-google: #dc2626; --src-openlibrary: #059669; --src-sudoc: #0891b2;
 }
 @media (prefers-color-scheme: dark) {
   :root { --bg: #1c1c1e; --bg2: #2c2c2e; --border: #3a3a3c; --text: #f2f2f7; --muted: #8e8e93; }
@@ -59,6 +60,10 @@ button.outline { background: transparent; color: var(--text); border: 1px solid 
 .lbl-src { display: none; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 1px 5px; border-radius: 3px; vertical-align: middle; margin-left: 4px; background: color-mix(in srgb, var(--bg2) 50%, #2563eb 20%); color: color-mix(in srgb, var(--muted) 60%, #2563eb 60%); }
 .lbl-src--ia { background: color-mix(in srgb, var(--bg2) 50%, #7c5cbf 20%); color: color-mix(in srgb, var(--muted) 40%, #7c5cbf 70%); }
 .lbl-src--notion { background: color-mix(in srgb, var(--bg2) 50%, #d97706 20%); color: color-mix(in srgb, var(--muted) 60%, #d97706 60%); }
+.lbl-src--bnf { background: color-mix(in srgb, var(--bg2) 50%, var(--src-bnf) 20%); color: color-mix(in srgb, var(--muted) 60%, var(--src-bnf) 60%); }
+.lbl-src--google { background: color-mix(in srgb, var(--bg2) 50%, var(--src-google) 20%); color: color-mix(in srgb, var(--muted) 60%, var(--src-google) 60%); }
+.lbl-src--openlibrary { background: color-mix(in srgb, var(--bg2) 50%, var(--src-openlibrary) 20%); color: color-mix(in srgb, var(--muted) 60%, var(--src-openlibrary) 60%); }
+.lbl-src--sudoc { background: color-mix(in srgb, var(--bg2) 50%, var(--src-sudoc) 20%); color: color-mix(in srgb, var(--muted) 60%, var(--src-sudoc) 60%); }
 .field:has(input.prefilled) .lbl-src:not(.lbl-src--ia):not(.lbl-src--notion) { display: inline; }
 .field:has(select.ai-filled) .lbl-src--ia,
 .field:has(textarea.ai-filled) .lbl-src--ia { display: inline; }

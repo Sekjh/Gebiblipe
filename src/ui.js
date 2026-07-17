@@ -36,6 +36,20 @@ function shortSource(s = '') {
           .replace('OpenLibrary', 'OL').replace('Google Books', 'Google').replace('OL Covers', 'OL');
 }
 
+// Classes de couleur par source réelle (BnF/Google/OpenLibrary/SUDOC), distinctes de la
+// palette catégorie existante (.lbl-src--ia/.lbl-src--notion). La couleur reste un renfort
+// visuel : le texte du badge (shortSource) demeure la source d'information primaire (RGAA
+// critère 3.1 — ne jamais coder l'information uniquement par la couleur).
+const SOURCE_COLOR_CLASSES = ['lbl-src--bnf', 'lbl-src--google', 'lbl-src--openlibrary', 'lbl-src--sudoc'];
+function sourceColorClass(source = '') {
+  const s = source.toLowerCase();
+  if (s.startsWith('bnf'))        return 'lbl-src--bnf';
+  if (s.startsWith('sudoc'))      return 'lbl-src--sudoc';
+  if (s.startsWith('google'))     return 'lbl-src--google';
+  if (s.startsWith('openlibrary') || s.startsWith('ol ')) return 'lbl-src--openlibrary';
+  return '';
+}
+
 export function setStatus(msg) {
   document.getElementById('status').textContent = msg;
 }
@@ -168,7 +182,12 @@ export function fillForm(b) {
     ...getActiveBibFields().filter(f => !f.isCover).map(f => [f.id, f.key])];
   for (const [fid, key] of badgeFields) {
     const badge = document.getElementById(fid)?.closest('.field')?.querySelector('.lbl-src:not(.lbl-src--ia)');
-    if (badge) badge.textContent = b.fieldSources?.[key] ? shortSource(b.fieldSources[key]) : 'ISBN';
+    if (badge) {
+      badge.textContent = b.fieldSources?.[key] ? shortSource(b.fieldSources[key]) : 'ISBN';
+      badge.classList.remove(...SOURCE_COLOR_CLASSES);
+      const colorClass = sourceColorClass(b.fieldSources?.[key] || '');
+      if (colorClass) badge.classList.add(colorClass);
+    }
   }
 
   const img = document.getElementById('cover-img');
@@ -176,7 +195,12 @@ export function fillForm(b) {
   const coverActive = getActiveBibFields().some(f => f.key === 'couverture');
   if (coverActive && b.couverture) {
     img.src = b.couverture; img.style.display = 'block'; img.classList.add('prefilled');
-    if (coverBadge) coverBadge.textContent = shortSource(b.fieldSources?.couverture || '');
+    if (coverBadge) {
+      coverBadge.textContent = shortSource(b.fieldSources?.couverture || '');
+      coverBadge.classList.remove(...SOURCE_COLOR_CLASSES);
+      const colorClass = sourceColorClass(b.fieldSources?.couverture || '');
+      if (colorClass) coverBadge.classList.add(colorClass);
+    }
   } else {
     img.style.display = 'none'; img.classList.remove('prefilled');
   }

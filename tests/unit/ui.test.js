@@ -198,7 +198,7 @@ const FULL_DOM = `
   <div id="form-section" style="display:none">
     <div class="field"><label>Titre</label><input id="f-titre" /></div>
     <div class="field"><label>Auteur</label><input id="f-auteur" /></div>
-    <div class="field"><label>Éditeur</label><input id="f-editeur" /></div>
+    <div class="field"><label>Éditeur <span class="lbl-src">ISBN</span></label><input id="f-editeur" /></div>
     <div class="field"><label>Collection</label><input id="f-collection-ed" /></div>
     <div class="field"><label>ISBN</label><input id="f-isbn" /></div>
     <div class="field"><label>Date éd.</label><input id="f-dateed" /></div>
@@ -418,6 +418,54 @@ describe('renderBibFieldsCard — séparateurs de cercles', () => {
     const container = document.getElementById('bib-fields-dynamic');
     const firstHeading = container.querySelector('.bib-circle-title');
     expect(firstHeading.nextElementSibling.classList.contains('field')).toBe(true);
+  });
+});
+
+// ─── fillForm — couleurs de badge par source réelle ───────────────────────────
+
+describe('fillForm — couleurs de badge par source réelle', () => {
+  beforeEach(() => {
+    document.body.innerHTML = FULL_DOM;
+    localStorage.clear();
+  });
+
+  test('applique la classe lbl-src--bnf quand le champ vient de BnF', () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', editeur: 'Éditions Sociales', source: 'BnF ISBN-13', searchLog: [], fieldSources: { editeur: 'BnF ISBN-13' } });
+    const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
+    expect(badge.classList.contains('lbl-src--bnf')).toBe(true);
+  });
+
+  test('applique la classe lbl-src--sudoc quand le champ vient de SUDOC', () => {
+    fillForm({ isbn: '9782070360024', titre: "L'étranger", auteur: 'Albert Camus', editeur: 'Gallimard', source: 'SUDOC ISBN-13', searchLog: [], fieldSources: { editeur: 'SUDOC ISBN-13' } });
+    const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
+    expect(badge.classList.contains('lbl-src--sudoc')).toBe(true);
+  });
+
+  test('applique la classe lbl-src--google quand le champ vient de Google Books', () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', editeur: 'Éditions Sociales', source: 'Google Books', searchLog: [], fieldSources: { editeur: 'Google Books' } });
+    const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
+    expect(badge.classList.contains('lbl-src--google')).toBe(true);
+  });
+
+  test('applique la classe lbl-src--openlibrary quand le champ vient d\'OpenLibrary', () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', editeur: 'Éditions Sociales', source: 'OpenLibrary ISBN-13', searchLog: [], fieldSources: { editeur: 'OpenLibrary ISBN-13' } });
+    const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
+    expect(badge.classList.contains('lbl-src--openlibrary')).toBe(true);
+  });
+
+  test('retire une classe de couleur obsolète lors d\'un nouveau remplissage (pas d\'accumulation)', () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', editeur: 'Éditions Sociales', source: 'BnF ISBN-13', searchLog: [], fieldSources: { editeur: 'BnF ISBN-13' } });
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', editeur: 'Éditions Sociales', source: 'Google Books', searchLog: [], fieldSources: { editeur: 'Google Books' } });
+    const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
+    expect(badge.classList.contains('lbl-src--bnf')).toBe(false);
+    expect(badge.classList.contains('lbl-src--google')).toBe(true);
+  });
+
+  test("n'applique aucune classe de couleur quand le champ n'a pas de source suivie (badge 'ISBN' générique)", () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', editeur: 'Éditions Sociales', source: '', searchLog: [], fieldSources: {} });
+    const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
+    expect(badge.textContent).toBe('ISBN');
+    expect(badge.className).toBe('lbl-src');
   });
 });
 

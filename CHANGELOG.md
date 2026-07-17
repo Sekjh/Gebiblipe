@@ -10,6 +10,7 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 - Propriété technique « Version GEBIBLIPE » (texte), envoyée automatiquement à Notion à chaque création/mise à jour de page, reflétant une constante unique `APP_VERSION` (`src/version.js`) — colonne créée automatiquement au premier envoi (schéma dynamique)
 - Nouvelle source bibliographique SUDOC (catalogue collectif universitaire français, SRU/UNIMARC) — 4e source de fallback, positionnée après BnF/OpenLibrary/Google Books par défaut, sélectionnable comme moteur préféré dans la configuration
 - Identifiant pivot PPN (SUDOC) collecté en best-effort, affiché dans le popover de sources et envoyé à Notion (colonne « PPN SUDOC » créée automatiquement)
+- Coloration des badges de source par champ (Titre, Auteur, Éditeur, etc.) selon la source bibliographique réelle ayant rempli le champ (BnF, OpenLibrary, Google Books, SUDOC), distincte de la palette catégorie existante (ISBN générique / IA / Notion)
 
 ### Changed
 - La fiche « Données bibliographiques » affiche désormais des séparateurs visuels entre les groupes de champs par cercle d'intérêt (Socle, Très utile, Valeur variable), reprenant le même habillage que le panneau de configuration des champs bibliographiques
