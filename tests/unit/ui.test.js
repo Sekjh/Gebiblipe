@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach } from 'vitest';
-import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsCard, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds, CIRCLE_LABELS } from '../../src/ui.js';
+import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsCard, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds, CIRCLE_LABELS, startManualEntry } from '../../src/ui.js';
 
 // ─── detectCollection ─────────────────────────────────────────────────────────
 
@@ -195,6 +195,7 @@ describe('setFieldNotion', () => {
 // ─── fillFormFromNotion ───────────────────────────────────────────────────────
 
 const FULL_DOM = `
+  <p id="status"></p>
   <div id="form-section" style="display:none">
     <div class="field"><label>Titre</label><input id="f-titre" /></div>
     <div class="field"><label>Auteur</label><input id="f-auteur" /></div>
@@ -466,6 +467,38 @@ describe('fillForm — couleurs de badge par source réelle', () => {
     const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
     expect(badge.textContent).toBe('ISBN');
     expect(badge.className).toBe('lbl-src');
+  });
+});
+
+// ─── startManualEntry ──────────────────────────────────────────────────────────
+
+describe('startManualEntry', () => {
+  beforeEach(() => {
+    document.body.innerHTML = FULL_DOM;
+    localStorage.clear();
+  });
+
+  test('vide les champs titre et auteur', () => {
+    document.getElementById('f-titre').value = 'Ancien titre';
+    document.getElementById('f-auteur').value = 'Ancien auteur';
+    startManualEntry();
+    expect(document.getElementById('f-titre').value).toBe('');
+    expect(document.getElementById('f-auteur').value).toBe('');
+  });
+
+  test("affiche 'Saisie manuelle' dans le badge de source", () => {
+    startManualEntry();
+    expect(document.getElementById('source-badge').textContent).toBe('Saisie manuelle');
+  });
+
+  test('affiche la section formulaire', () => {
+    startManualEntry();
+    expect(document.getElementById('form-section').style.display).toBe('block');
+  });
+
+  test('déplace le focus sur le champ Titre', () => {
+    startManualEntry();
+    expect(document.activeElement.id).toBe('f-titre');
   });
 });
 

@@ -310,6 +310,20 @@ describe('sendToNotion — routage', () => {
     clearCurrentPageId();
   });
 
+  test("bloque l'envoi et affiche un message si le Titre est vide (ajout manuel incomplet)", async () => {
+    document.getElementById('f-titre').value = '';
+    await sendToNotion();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(document.getElementById('notion-status').textContent).toContain('obligatoires');
+  });
+
+  test("bloque l'envoi et affiche un message si l'Auteur est vide", async () => {
+    document.getElementById('f-auteur').value = '';
+    await sendToNotion();
+    expect(fetch).not.toHaveBeenCalled();
+    expect(document.getElementById('notion-status').textContent).toContain('obligatoires');
+  });
+
   test('sans _currentPageId → POST /v1/pages (création)', async () => {
     fetch
       .mockResolvedValueOnce({ ok: true, json: async () => dbFull })

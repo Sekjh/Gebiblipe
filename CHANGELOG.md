@@ -11,9 +11,13 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 - Nouvelle source bibliographique SUDOC (catalogue collectif universitaire français, SRU/UNIMARC) — 4e source de fallback, positionnée après BnF/OpenLibrary/Google Books par défaut, sélectionnable comme moteur préféré dans la configuration
 - Identifiant pivot PPN (SUDOC) collecté en best-effort, affiché dans le popover de sources et envoyé à Notion (colonne « PPN SUDOC » créée automatiquement)
 - Coloration des badges de source par champ (Titre, Auteur, Éditeur, etc.) selon la source bibliographique réelle ayant rempli le champ (BnF, OpenLibrary, Google Books, SUDOC), distincte de la palette catégorie existante (ISBN générique / IA / Notion)
+- Bouton « Ajouter sans ISBN » sur l'écran de recherche, ouvrant un formulaire vide et éditable (cercles bibliographiques inchangés) — utile pour les livres sans ISBN (anciens, manuscrits, etc.)
 
 ### Changed
 - La fiche « Données bibliographiques » affiche désormais des séparateurs visuels entre les groupes de champs par cercle d'intérêt (Socle, Très utile, Valeur variable), reprenant le même habillage que le panneau de configuration des champs bibliographiques
+
+### Fixed
+- L'envoi vers Notion est désormais bloqué avec un message explicite si le Titre ou l'Auteur est vide, plutôt que de créer silencieusement une page incomplète
 
 ---
 

@@ -385,6 +385,18 @@ export async function lookup(isbnArg = '') {
   fillForm(b);
 }
 
+// Ouvre le formulaire vide et éditable pour un livre sans ISBN (ouvrages anciens, manuscrits,
+// tirages spéciaux…). fillForm() gère déjà b.source vide via le fallback "Saisie manuelle"
+// (voir source-badge ci-dessus) — aucune identifiant local n'est généré : la page Notion créée
+// à l'envoi reste la seule clé, la dédup par ISBN étant déjà sautée quand l'ISBN est vide.
+export function startManualEntry() {
+  const b = { isbn: '', source: '', searchLog: [], fieldSources: {}, sourceIds: {} };
+  for (const key of MERGE_KEYS) b[key] = '';
+  fillForm(b);
+  setStatus('');
+  document.getElementById('f-titre')?.focus();
+}
+
 export async function suggestTheme() {
   const titre  = document.getElementById('f-titre').value.trim();
   const auteur = document.getElementById('f-auteur').value.trim();

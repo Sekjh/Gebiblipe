@@ -1,4 +1,4 @@
-import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources, renderBibFieldsCard, toggleBibFieldsPanel, saveBibFieldsConfig } from './ui.js';
+import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources, renderBibFieldsCard, toggleBibFieldsPanel, saveBibFieldsConfig, startManualEntry } from './ui.js';
 import { sendToNotion, saveConfig, toggleConfig, lookupFromNotion, setCurrentPageId, clearCurrentPageId, getCurrentPageId, updateConfigWarning } from './notion.js';
 import { validateIsbn } from './isbn.js';
 import { getConfig } from './config.js';
@@ -151,6 +151,12 @@ isbnInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') startSearch(isbnInput.value.trim());
 });
 btnLookup.addEventListener('click', () => startSearch(isbnInput.value.trim()));
+
+document.getElementById('btn-add-manual').addEventListener('click', () => {
+  clearCurrentPageId();
+  document.getElementById('btn-send-notion').textContent = 'Envoyer dans Notion';
+  startManualEntry();
+});
 
 // Cmd/Ctrl+Enter anywhere in the form sends to Notion
 document.getElementById('form-section').addEventListener('keydown', e => {

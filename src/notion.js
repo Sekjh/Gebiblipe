@@ -208,6 +208,13 @@ export function toggleConfig() {
 }
 
 export async function sendToNotion() {
+  const titre = document.getElementById('f-titre')?.value?.trim();
+  const auteur = document.getElementById('f-auteur')?.value?.trim();
+  if (!titre || !auteur) {
+    document.getElementById('notion-status').textContent = '⚠️ Titre et Auteur(s) sont obligatoires avant l\'envoi.';
+    return;
+  }
+
   const cfg = getConfig();
   if (!cfg.token || !cfg.dbId) {
     document.getElementById('notion-status').textContent = '⚙ Configure d\'abord le token Notion (lien en bas de page).';
