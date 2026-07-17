@@ -9,7 +9,7 @@
 <body>
 
 <div class="container">
-  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.56.1 — 2026-07-17</span></h1>
+  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.57.0 — 2026-07-17</span></h1>
 
   <div class="card">
     <div class="input-row">
@@ -227,6 +227,17 @@
     </div>
         <div style="font-size:12px;line-height:1.8;">
       <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+        <span style="font-weight:600;color:var(--text);">v0.57.0</span>
+        <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
+        <div style="margin-top:8px;">
+          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Champs bibliographiques</div>
+          <div style="color:var(--muted);">• Panneau et fiche de saisie réorganisés par cercle d'intérêt (Socle, Très utile, Valeur variable) ; Titre/Auteur visibles en tête du Cercle 1, verrouillés</div>
+          <div style="color:var(--muted);">• Nouveau champ Format / reliure (cercle 2)</div>
+          <div style="color:var(--muted);">• Identifiants pivots (ARK BnF, OLID, Google Volume ID, OCLC) affichés dans le popover de sources et envoyés à Notion dès qu'ils sont disponibles</div>
+          <div style="color:var(--muted);">• Langue désormais extraite aussi depuis BnF et OpenLibrary (normalisation ISO 639-1), plus seulement Google Books</div>
+        </div>
+      </div>
+      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
         <span style="font-weight:600;color:var(--text);">v0.56.1</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
         <div style="margin-top:8px;">
@@ -234,7 +245,7 @@
           <div style="color:var(--muted);">• Le fallback multi-API continue d'interroger les sources suivantes tant qu'un champ bibliographique sélectionné manque (utile pour Genre, Résumé, Langue, fournis uniquement par Google Books)</div>
         </div>
       </div>
-      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+      <div style="padding:0.75rem 1rem;">
         <span style="font-weight:600;color:var(--text);">v0.56.0</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
         <div style="margin-top:8px;">
@@ -243,14 +254,6 @@
           <div style="color:var(--muted);">• Genre, Résumé et Langue extraits automatiquement via Google Books (Genre en propriété Notion multi_select)</div>
           <div style="color:var(--muted);">• Synchronisation Notion dynamique : les colonnes manquantes sont créées selon les champs actifs</div>
           <div style="color:var(--muted);">• Suppression des champs personnalisés "Nationalité de l'auteur" et "Publication originale"</div>
-        </div>
-      </div>
-      <div style="padding:0.75rem 1rem;">
-        <span style="font-weight:600;color:var(--text);">v0.55.0</span>
-        <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
-        <div style="margin-top:8px;">
-          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Configuration</div>
-          <div style="color:var(--muted);">• Avertissement discret (pastille + aria-label) sur le bouton "⚙ configuration" quand le token Notion, la database ID ou l'URL du proxy ne sont pas renseignés</div>
         </div>
       </div>
     </div>

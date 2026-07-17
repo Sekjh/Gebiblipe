@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.57.0] — 2026-07-17
+
 ### Added
 - Champ bibliographique « Format / reliure » (cercle 2, saisie manuelle)
 - Identifiants pivots (ARK BnF, OLID, Google Volume ID, OCLC) collectés en best-effort par les sources bibliographiques — affichés en lecture seule dans le popover de sources (section « Identifiants techniques ») et envoyés à Notion dès qu'ils sont disponibles (colonnes créées automatiquement)
@@ -217,7 +221,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.56.1...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.57.0...HEAD
+[0.57.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.56.1...v0.57.0
 [0.56.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.56.0...v0.56.1
 [0.56.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.55.0...v0.56.0
 [0.55.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.1...v0.55.0
