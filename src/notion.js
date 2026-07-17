@@ -209,10 +209,10 @@ export function toggleConfig() {
 }
 
 export async function sendToNotion() {
+  const isbn = document.getElementById('f-isbn')?.value?.trim();
   const titre = document.getElementById('f-titre')?.value?.trim();
-  const auteur = document.getElementById('f-auteur')?.value?.trim();
-  if (!titre || !auteur) {
-    document.getElementById('notion-status').textContent = '⚠️ Titre et Auteur(s) sont obligatoires avant l\'envoi.';
+  if (!isbn && !titre) {
+    document.getElementById('notion-status').textContent = '⚠️ L\'ISBN (ou le Titre en saisie manuelle) est obligatoire avant l\'envoi.';
     return;
   }
 

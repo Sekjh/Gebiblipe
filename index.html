@@ -313,8 +313,8 @@
 
     <h3 class="doc-section-title">Fonctionnalités</h3>
     <ul class="doc-list">
-      <li>Recherche par ISBN — validation checksum, conversion ISBN-13/10</li>
-      <li>Ajout manuel sans ISBN via le bouton « Nouveau sans ISBN » — formulaire vide éditable, Titre et Auteur obligatoires avant envoi ; case à cocher technique « Saisie manuelle » cochée automatiquement dans Notion dès qu'aucune source bibliographique n'a contribué (ajout manuel ou recherche ISBN infructueuse)</li>
+      <li>Recherche par ISBN — validation checksum, conversion ISBN-13/10 ; l'ISBN doit être renseigné pour permettre l'envoi vers Notion dans ce mode</li>
+      <li>Ajout manuel sans ISBN via le bouton « Nouveau sans ISBN » — formulaire vide éditable, Titre obligatoire avant envoi ; case à cocher technique « Saisie manuelle » cochée automatiquement dans Notion dès qu'aucune source bibliographique n'a contribué (ajout manuel ou recherche ISBN infructueuse)</li>
       <li>Import en masse d'ISBN via le bouton « Import en masse (ISBN) » — champ libre où coller une liste d'ISBN (un par ligne) ; chaque ISBN est vérifié dans Notion, ses champs bibliographiques vides sont complétés via les 4 sources, ses identifiants techniques et sa version GEBIBLIPE sont rafraîchis, et un tableau récapitulatif (statut, champs modifiés) permet de valider ou d'exclure chaque entrée avant l'envoi groupé vers Notion ; « Saisie manuelle » est cochée dès qu'aucune source n'a retrouvé le livre, même pour une fiche déjà présente dans Notion</li>
       <li>Sources bibliographiques multi-moteurs : BnF (recommandée), OpenLibrary, Google Books, SUDOC (catalogue collectif universitaire)</li>
       <li>Enrichissement automatique avec fallback — une source suivante est consultée tant qu'un champ bibliographique sélectionné manque</li>

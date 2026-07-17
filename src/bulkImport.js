@@ -113,13 +113,11 @@ export const FIELD_ID_TO_BOOK_KEY = {
 };
 
 // Envoie un enregistrement traité vers Notion (création ou mise à jour selon record.pageId),
-// en réutilisant buildProps() (notion.js) via des accesseurs objet plutôt que DOM — reproduit la
-// garde Titre/Auteur obligatoire de sendToNotion(), qui n'est pas portée par buildProps() lui-même.
+// en réutilisant buildProps() (notion.js) via des accesseurs objet plutôt que DOM. Aucune garde
+// de champ obligatoire ici : l'ISBN est déjà validé (checksum) par parseIsbnList() en amont,
+// et ce flux n'a pas de mode manuel (voir sendToNotion() pour la garde ISBN/Titre du flux unitaire).
 export async function sendRecord(record, cfg, sync) {
   const book = record.book;
-  if (!book.titre || !book.auteur) {
-    return { ok: false, error: 'Titre et/ou Auteur manquant(s)' };
-  }
 
   const get = id => {
     const key = FIELD_ID_TO_BOOK_KEY[id];

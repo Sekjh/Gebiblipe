@@ -6,6 +6,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+- Règle de champs obligatoires avant l'envoi Notion revue : l'ISBN devient obligatoire en mode recherche (Titre/Auteur redeviennent optionnels), et seul le Titre est obligatoire en mode « Nouveau sans ISBN » — l'import en masse ne vérifie plus que la validité de l'ISBN (déjà garantie par le parsing de la liste collée)
+
 ---
 
 ## [0.59.0] — 2026-07-17

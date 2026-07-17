@@ -330,18 +330,32 @@ describe('sendToNotion — routage', () => {
     clearCurrentPageId();
   });
 
-  test("bloque l'envoi et affiche un message si le Titre est vide (ajout manuel incomplet)", async () => {
+  test("bloque l'envoi et affiche un message si l'ISBN et le Titre sont tous deux vides", async () => {
+    document.getElementById('f-isbn').value = '';
     document.getElementById('f-titre').value = '';
     await sendToNotion();
     expect(fetch).not.toHaveBeenCalled();
-    expect(document.getElementById('notion-status').textContent).toContain('obligatoires');
+    expect(document.getElementById('notion-status').textContent).toContain('obligatoire');
   });
 
-  test("bloque l'envoi et affiche un message si l'Auteur est vide", async () => {
+  test("autorise l'envoi avec seulement l'ISBN renseigné (Titre et Auteur vides)", async () => {
+    document.getElementById('f-titre').value = '';
     document.getElementById('f-auteur').value = '';
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => dbFull })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     await sendToNotion();
-    expect(fetch).not.toHaveBeenCalled();
-    expect(document.getElementById('notion-status').textContent).toContain('obligatoires');
+    expect(fetch).toHaveBeenCalled();
+  });
+
+  test("autorise l'envoi avec seulement le Titre renseigné (mode sans ISBN)", async () => {
+    document.getElementById('f-isbn').value = '';
+    document.getElementById('f-titre').value = 'Un titre';
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => dbFull })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await sendToNotion();
+    expect(fetch).toHaveBeenCalled();
   });
 
   test('sans _currentPageId → POST /v1/pages (création)', async () => {

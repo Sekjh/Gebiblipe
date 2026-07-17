@@ -156,14 +156,6 @@ describe('processFile', () => {
 // ─── sendRecord ─────────────────────────────────────────────────────────────
 
 describe('sendRecord', () => {
-  test('refuse d\'envoyer un enregistrement sans Titre/Auteur sans appeler fetch', async () => {
-    const record = { book: { titre: '', auteur: '' }, pageId: null, manualEntry: true, sourceIds: {} };
-    const result = await sendRecord(record, CFG, { conflicts: [] });
-    expect(result.ok).toBe(false);
-    expect(result.error).toContain('Titre et/ou Auteur');
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
   test('crée une page (POST) quand record.pageId est absent', async () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'new-page' }) });
     const record = {
