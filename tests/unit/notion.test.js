@@ -18,6 +18,7 @@ import {
   lookupFromNotion, syncDatabaseProps, doSend, updatePageFull, sendToNotion,
   setCurrentPageId, clearCurrentPageId, updateConfigWarning,
 } from '../../src/notion.js';
+import { APP_VERSION } from '../../src/version.js';
 
 const CFG = { token: 'ntn_x', dbId: 'abcdef1234567890abcdef1234567890', proxy: '' };
 
@@ -186,6 +187,7 @@ describe('doSend', () => {
     expect(body.properties['Pages'].number).toBe(900);
     expect(body.properties['Date de lecture'].rich_text[0].text.content).toBe('Juin 2024');
     expect(body.properties['Collection (livre)'].checkbox).toBe(false);
+    expect(body.properties['Version GEBIBLIPE'].rich_text[0].text.content).toBe(APP_VERSION);
   });
 
   test("omet les props dont le nom est dans sync.conflicts", async () => {
@@ -286,6 +288,7 @@ describe('updatePageFull', () => {
     expect(body.properties['Nom'].title[0].text.content).toBe('Le Capital');
     expect(body.properties['Auteur'].rich_text[0].text.content).toBe('Karl Marx');
     expect(body.properties['Pages'].number).toBe(900);
+    expect(body.properties['Version GEBIBLIPE'].rich_text[0].text.content).toBe(APP_VERSION);
   });
 
   test('affiche le message de succès dans notion-status', async () => {

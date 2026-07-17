@@ -6,6 +6,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+- Propriété technique « Version GEBIBLIPE » (texte), envoyée automatiquement à Notion à chaque création/mise à jour de page, reflétant une constante unique `APP_VERSION` (`src/version.js`) — colonne créée automatiquement au premier envoi (schéma dynamique)
+
 ---
 
 ## [0.57.0] — 2026-07-17
