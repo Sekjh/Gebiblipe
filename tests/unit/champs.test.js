@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { localStorageStub } from '../helpers/localStorage.js';
-import { BIB_FIELDS, MANDATORY_FIELDS, getActiveBibFields } from '../../src/champs.js';
+import { BIB_FIELDS, MANDATORY_FIELDS, PIVOT_IDENTIFIER_KEYS, getActiveBibFields } from '../../src/champs.js';
 
 beforeEach(() => {
   localStorageStub.clear();
@@ -32,12 +32,38 @@ describe('BIB_FIELDS', () => {
     expect(BIB_FIELDS.some(f => f.key === 'auteur')).toBe(false);
     expect(MANDATORY_FIELDS.map(f => f.key)).toEqual(['titre', 'auteur']);
   });
+
+  test('chaque champ appartient à un cercle valide (1, 2 ou 3)', () => {
+    for (const f of BIB_FIELDS) {
+      expect([1, 2, 3]).toContain(f.circle);
+    }
+  });
+
+  test('le tableau est trié par cercle croissant', () => {
+    const circles = BIB_FIELDS.map(f => f.circle);
+    const sorted = [...circles].sort((a, b) => a - b);
+    expect(circles).toEqual(sorted);
+  });
+
+  test('"format" (Format / reliure) est un champ du cercle 2, décoché par défaut', () => {
+    const format = BIB_FIELDS.find(f => f.key === 'format');
+    expect(format).toBeDefined();
+    expect(format.circle).toBe(2);
+    expect(format.defaultOn).toBe(false);
+    expect(format.notionProp).toBe('Format');
+  });
+});
+
+describe('PIVOT_IDENTIFIER_KEYS', () => {
+  test('liste les 4 identifiants pivots attendus', () => {
+    expect(PIVOT_IDENTIFIER_KEYS.sort()).toEqual(['ark', 'googleVolumeId', 'oclc', 'olid'].sort());
+  });
 });
 
 describe('getActiveBibFields', () => {
   test('sans préférence enregistrée, retourne les champs defaultOn', () => {
     const active = getActiveBibFields().map(f => f.key);
-    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'editeur', 'pages'].sort());
+    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'editeur', 'language', 'pages'].sort());
   });
 
   test('respecte la préférence enregistrée dans localStorage', () => {
@@ -49,7 +75,7 @@ describe('getActiveBibFields', () => {
   test('ignore une valeur localStorage invalide (JSON corrompu) et retombe sur les défauts', () => {
     localStorage.setItem('bib_fields', 'pas-du-json');
     const active = getActiveBibFields().map(f => f.key);
-    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'editeur', 'pages'].sort());
+    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'editeur', 'language', 'pages'].sort());
   });
 
   test('une liste vide désactive tous les champs bibliographiques', () => {

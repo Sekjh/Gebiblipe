@@ -24,6 +24,8 @@ export async function fetchBnF(raw, b) {
       if(!b.auteur){const na2=gfa('701','a'),nb2=gfa('701','b');b.auteur=na2.map((a,i)=>nb2[i]?nb2[i]+' '+a:a).join(', ');}
       b.editeur=gf('210','c')||gf('214','c'); b.dateed=gf('210','d')||gf('214','d');
       b.collection=gf('225','a'); b.pages=gf('215','a');
+      const ark = rec.querySelector('controlfield[tag="003"]')?.textContent?.trim();
+      if (ark) { b.sourceIds = b.sourceIds || {}; b.sourceIds.ark = ark; }
       if(b.titre) { b.source = (isbn === raw) ? 'BnF ISBN-13' : 'BnF ISBN-10'; return; }
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
@@ -43,6 +45,13 @@ export async function fetchOpenLibrary(raw, b) {
       b.titre=det.title||''; b.auteur=det.authors?.map(a=>a.name).join(', ')||'';
       b.editeur=det.publishers?.[0]||''; b.dateed=det.publish_date||''; b.pages=det.number_of_pages||'';
       if(entry.thumbnail_url) b.couverture=entry.thumbnail_url.replace('-S.','-M.');
+      const olid = det.key?.replace('/books/','');
+      const oclc = det.identifiers?.oclc?.[0] || det.oclc_numbers?.[0];
+      if (olid || oclc) {
+        b.sourceIds = b.sourceIds || {};
+        if (olid) b.sourceIds.olid = olid;
+        if (oclc) b.sourceIds.oclc = oclc;
+      }
       if(b.titre) { b.source = (isbn === raw) ? 'OpenLibrary ISBN-13' : 'OpenLibrary ISBN-10'; return; }
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
@@ -56,6 +65,7 @@ export async function fetchGoogle(raw, b) {
   b.dateed=v.publishedDate||''; b.pages=v.pageCount||'';
   b.categories=v.categories?.join(', ')||''; b.description=v.description||''; b.language=v.language||'';
   if(v.imageLinks?.thumbnail) b.couverture=v.imageLinks.thumbnail.replace('http:','https:');
+  if(g.items[0].id) { b.sourceIds = b.sourceIds || {}; b.sourceIds.googleVolumeId = g.items[0].id; }
   if(b.titre) b.source='Google Books';
 }
 

@@ -2,7 +2,7 @@ import { THEMES } from './themes.js';
 import { validateIsbn } from './isbn.js';
 import { fetchBnF, fetchOpenLibrary, fetchGoogle, fetchCover } from './fetchers.js';
 import { callClaude } from './claude.js';
-import { BIB_FIELDS, getActiveBibFields } from './champs.js';
+import { MANDATORY_FIELDS, BIB_FIELDS, getActiveBibFields } from './champs.js';
 import { getEnabledBibFields, setEnabledBibFields } from './config.js';
 
 const MERGE_KEYS = ['titre', 'auteur', ...BIB_FIELDS.map(f => f.key)];
@@ -402,7 +402,7 @@ export function toggleSourcePopover() {
   if (!pop) return;
   if (!pop.hidden) { pop.hidden = true; return; }
 
-  const LABELS = { titre: 'Titre', auteur: 'Auteur', editeur: 'Éditeur', collection: 'Collection', dateed: 'Date éd.', pages: 'Pages', couverture: 'Couverture', categories: 'Genre', description: 'Résumé', language: 'Langue' };
+  const LABELS = Object.fromEntries([...MANDATORY_FIELDS, ...BIB_FIELDS].map(f => [f.key, f.label]));
   const STATUS_META = {
     importé:      { icon: '✓', cls: 'sp-ok' },
     trouvé:       { icon: '◦', cls: 'sp-found' },
@@ -539,12 +539,27 @@ export function renderBibFieldsCard() {
   }
 }
 
-// Peuple les cases à cocher du panneau « Champs bibliographiques » depuis la config active.
+// Intitulés des groupes affichés au-dessus des cases à cocher, par cercle d'intérêt du champ
+// (cf. src/champs.js) — cercle 1 = socle, 2 = très utile, 3 = forte valeur mais variable.
+const CIRCLE_LABELS = {
+  1: 'Cercle 1 — Socle',
+  2: 'Cercle 2 — Très utile',
+  3: 'Cercle 3 — Valeur variable',
+};
+
+// Peuple les cases à cocher du panneau « Champs bibliographiques » depuis la config active,
+// regroupées par cercle d'intérêt (BIB_FIELDS est déjà trié par circle croissant).
 export function renderBibFieldsChecklist() {
   const container = document.getElementById('bib-fields-checklist');
   if (!container) return;
   const enabled = new Set(getEnabledBibFields() ?? BIB_FIELDS.filter(f => f.defaultOn).map(f => f.key));
-  container.innerHTML = BIB_FIELDS.map(f => `<div class="field checkbox-row"><input type="checkbox" id="bibcfg-${f.key}"${enabled.has(f.key) ? ' checked' : ''}><label for="bibcfg-${f.key}">${f.label}</label></div>`).join('');
+  let lastCircle = null;
+  container.innerHTML = BIB_FIELDS.map(f => {
+    const heading = f.circle !== lastCircle
+      ? `<p class="section-title" style="margin-top:10px;">${CIRCLE_LABELS[f.circle] || ''}</p>` : '';
+    lastCircle = f.circle;
+    return `${heading}<div class="field checkbox-row"><input type="checkbox" id="bibcfg-${f.key}"${enabled.has(f.key) ? ' checked' : ''}><label for="bibcfg-${f.key}">${f.label}</label></div>`;
+  }).join('');
 }
 
 // Lit les cases cochées, enregistre la config et reconstruit immédiatement la fiche bibliographique.

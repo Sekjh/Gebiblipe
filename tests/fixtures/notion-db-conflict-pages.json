@@ -6,6 +6,7 @@
     "Collection":           { "type": "rich_text" },
     "ISBN":                 { "type": "rich_text" },
     "Date édition":         { "type": "rich_text" },
+    "Langue":               { "type": "rich_text" },
     "Date de lecture":      { "type": "rich_text" },
     "Fiche de lecture":     { "type": "rich_text" },
     "Commentaire":          { "type": "rich_text" },

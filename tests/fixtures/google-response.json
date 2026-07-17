@@ -1,5 +1,6 @@
 {
   "items": [{
+    "id": "abc123XYZ",
     "volumeInfo": {
       "title": "Du côté de chez Swann",
       "authors": ["Marcel Proust"],

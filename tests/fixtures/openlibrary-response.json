@@ -5,7 +5,9 @@
       "authors": [{ "name": "Marcel Proust" }],
       "publishers": ["Gallimard"],
       "publish_date": "1987",
-      "number_of_pages": 3428
+      "number_of_pages": 3428,
+      "key": "/books/OL7358935M",
+      "identifiers": { "oclc": ["12345678"] }
     },
     "thumbnail_url": "https://covers.openlibrary.org/b/id/12345-S.jpg"
   }

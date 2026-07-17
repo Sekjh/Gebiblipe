@@ -5,6 +5,7 @@
     <record>
       <recordData>
         <record xmlns="http://www.bnf.fr/namespace/bibframe">
+          <controlfield tag="003">https://catalogue.bnf.fr/ark:/12148/cb31570438x</controlfield>
           <datafield tag="200">
             <subfield code="a">Le Capital</subfield>
             <subfield code="e">Critique de l'économie politique</subfield>

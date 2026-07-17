@@ -56,6 +56,7 @@ describe('fetchBnF', () => {
     expect(b.dateed).toBe('1969');
     expect(b.collection).toBe('Bibliothèque marxiste');
     expect(b.pages).toBe('900');
+    expect(b.sourceIds.ark).toBe('https://catalogue.bnf.fr/ark:/12148/cb31570438x');
   });
 
   test('ne positionne pas b.source quand pas de <record>', async () => {
@@ -94,6 +95,8 @@ describe('fetchOpenLibrary', () => {
     expect(b.titre).toBeTruthy();
     expect(b.auteur).toContain('Proust');
     expect(b.couverture).toContain('-M.');
+    expect(b.sourceIds.olid).toBe('OL7358935M');
+    expect(b.sourceIds.oclc).toBe('12345678');
   });
 
   test('ne positionne pas b.source quand la clé ISBN est absente', async () => {
@@ -120,6 +123,7 @@ describe('fetchGoogle', () => {
     expect(b.source).toBe('Google Books');
     expect(b.titre).toBeTruthy();
     expect(b.couverture).toMatch(/^https:/);
+    expect(b.sourceIds.googleVolumeId).toBe('abc123XYZ');
   });
 
   test('ne fait rien quand items est absent', async () => {
