@@ -18,6 +18,7 @@ import { lookup } from '../../src/ui.js';
 // DOM minimal nécessaire pour lookup() + fillForm()
 const FORM_DOM = `
   <p id="status"></p>
+  <div id="search-skeleton" hidden aria-hidden="true"></div>
   <div id="form-section" style="display:none">
     <p id="found-title"></p>
     <span id="source-badge"></span>
@@ -114,6 +115,40 @@ describe('Fallback BnF → OL → Google → SUDOC', () => {
     await lookup('9782070360024');
     expect(document.getElementById('source-badge').textContent).toContain('SUDOC');
     expect(document.getElementById('f-titre').value).toBe("L'étranger");
+  });
+});
+
+// ─── Skeleton screen progressif ───────────────────────────────────────────────
+
+describe('Skeleton screen progressif', () => {
+  test('affiche le skeleton dès le lancement, le masque dès qu\'un champ est trouvé', async () => {
+    let resolveBnf;
+    const bnfPromise = new Promise(res => { resolveBnf = res; });
+    fetch.mockImplementationOnce(() => bnfPromise);
+
+    const promise = lookup('9782070360024');
+    expect(document.getElementById('search-skeleton').hidden).toBe(false);
+    expect(document.getElementById('search-skeleton').getAttribute('aria-hidden')).toBe('false');
+    expect(document.getElementById('form-section').style.display).toBe('none');
+
+    resolveBnf({ ok: true, text: async () => bnfFound });
+    await promise;
+
+    expect(document.getElementById('search-skeleton').hidden).toBe(true);
+    expect(document.getElementById('search-skeleton').getAttribute('aria-hidden')).toBe('true');
+    expect(document.getElementById('form-section').style.display).toBe('block');
+    expect(document.getElementById('f-titre').value).toContain('Le Capital');
+  });
+
+  test('masque le skeleton même quand aucune source ne trouve rien', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfEmpty })
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfEmpty })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [] }) })
+      .mockResolvedValue({ ok: false, headers: { get: () => '0' } });
+    await lookup('9782070360024');
+    expect(document.getElementById('search-skeleton').hidden).toBe(true);
   });
 });
 
