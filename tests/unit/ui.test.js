@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach } from 'vitest';
-import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsCard, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds, CIRCLE_LABELS, startManualEntry, showSkeleton, hideSkeleton } from '../../src/ui.js';
+import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsCard, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds, CIRCLE_LABELS, startManualEntry } from '../../src/ui.js';
 
 // ─── detectCollection ─────────────────────────────────────────────────────────
 
@@ -467,35 +467,6 @@ describe('fillForm — couleurs de badge par source réelle', () => {
     const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
     expect(badge.textContent).toBe('ISBN');
     expect(badge.className).toBe('lbl-src');
-  });
-});
-
-// ─── showSkeleton / hideSkeleton ───────────────────────────────────────────────
-
-describe('showSkeleton / hideSkeleton', () => {
-  beforeEach(() => {
-    document.body.innerHTML = '<div id="search-skeleton" hidden aria-hidden="true"></div>';
-  });
-
-  test('showSkeleton() affiche le panneau et synchronise aria-hidden', () => {
-    showSkeleton();
-    const el = document.getElementById('search-skeleton');
-    expect(el.hidden).toBe(false);
-    expect(el.getAttribute('aria-hidden')).toBe('false');
-  });
-
-  test('hideSkeleton() masque le panneau et synchronise aria-hidden', () => {
-    showSkeleton();
-    hideSkeleton();
-    const el = document.getElementById('search-skeleton');
-    expect(el.hidden).toBe(true);
-    expect(el.getAttribute('aria-hidden')).toBe('true');
-  });
-
-  test('ne lève pas d\'erreur quand #search-skeleton est absent du DOM', () => {
-    document.body.innerHTML = '';
-    expect(() => showSkeleton()).not.toThrow();
-    expect(() => hideSkeleton()).not.toThrow();
   });
 });
 

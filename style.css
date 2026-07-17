@@ -33,13 +33,6 @@ button.outline { background: transparent; color: var(--text); border: 1px solid 
 .cover-img.prefilled ~ .cover-src-badge { display: block; }
 .section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
 .bib-circle-title:not(:first-child) { margin-top: 14px; }
-.skeleton-card { display: flex; flex-direction: column; gap: 8px; }
-.skeleton-line { height: 14px; border-radius: 4px; background: linear-gradient(90deg, var(--bg2) 25%, var(--border) 50%, var(--bg2) 75%); background-size: 200% 100%; animation: skeleton-pulse 1.4s ease-in-out infinite; }
-.skeleton-line--title { width: 60%; height: 18px; }
-@keyframes skeleton-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-@media (prefers-reduced-motion: reduce) {
-  .skeleton-line { animation: none; opacity: 0.6; }
-}
 .config-warn-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #d97706; margin-left: 5px; vertical-align: middle; }
 .checkbox-row { display: flex; align-items: center; gap: 8px; }
 .checkbox-row input[type=checkbox] { width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--text); }

@@ -54,21 +54,6 @@ export function setStatus(msg) {
   document.getElementById('status').textContent = msg;
 }
 
-// Écran de chargement progressif affiché pendant lookup() — décoratif (aria-hidden), l'info
-// réelle passe par #status (aria-live). Masqué dès la première contribution utile d'une source.
-export function showSkeleton() {
-  const el = document.getElementById('search-skeleton');
-  if (!el) return;
-  el.hidden = false;
-  el.setAttribute('aria-hidden', 'false');
-}
-export function hideSkeleton() {
-  const el = document.getElementById('search-skeleton');
-  if (!el) return;
-  el.hidden = true;
-  el.setAttribute('aria-hidden', 'true');
-}
-
 export function setField(id, val) {
   const el = document.getElementById(id);
   el.value = val || '';
@@ -336,12 +321,9 @@ export async function lookup(isbnArg = '') {
   if (btnLookup) btnLookup.disabled = true;
   setStatus('Recherche en cours…');
   document.getElementById('form-section').style.display = 'none';
-  showSkeleton();
 
   const engine = localStorage.getItem('search_engine') || 'bnf';
   const activeKeys = new Set(getActiveBibFields().map(f => f.key));
-  const idMap = { titre: 'f-titre', auteur: 'f-auteur',
-    ...Object.fromEntries(BIB_FIELDS.filter(f => !f.isCover).map(f => [f.key, f.id])) };
   const b = { isbn: raw, source: '' };
   for (const key of MERGE_KEYS) b[key] = '';
 
@@ -378,13 +360,6 @@ export async function lookup(isbnArg = '') {
         if (!b[key] && tmp[key]) { b[key] = tmp[key]; b.fieldSources[key] = tmp.source; contributed.push(key); }
       }
     }
-    if (contributed.length) {
-      hideSkeleton();
-      document.getElementById('form-section').style.display = 'block';
-      for (const key of contributed) {
-        if (idMap[key] && document.getElementById(idMap[key])) setField(idMap[key], b[key]);
-      }
-    }
     b.searchLog.push({
       source: tmp.source || fetcherNames.get(fetcher),
       status: contributed.length > 0 ? 'importé' : logStatus,
@@ -407,7 +382,6 @@ export async function lookup(isbnArg = '') {
     fields: coversContributed,
   });
 
-  hideSkeleton();
   fillForm(b);
 }
 

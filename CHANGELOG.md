@@ -12,11 +12,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 - Identifiant pivot PPN (SUDOC) collecté en best-effort, affiché dans le popover de sources et envoyé à Notion (colonne « PPN SUDOC » créée automatiquement)
 - Coloration des badges de source par champ (Titre, Auteur, Éditeur, etc.) selon la source bibliographique réelle ayant rempli le champ (BnF, OpenLibrary, Google Books, SUDOC), distincte de la palette catégorie existante (ISBN générique / IA / Notion)
 - Bouton « Ajouter sans ISBN » sur l'écran de recherche, ouvrant un formulaire vide et éditable (cercles bibliographiques inchangés) — utile pour les livres sans ISBN (anciens, manuscrits, etc.)
-- Écran de chargement progressif (skeleton) affiché pendant la recherche ISBN — les champs bibliographiques apparaissent au fur et à mesure des réponses des sources (BnF, OpenLibrary, Google Books, SUDOC) plutôt qu'en un seul bloc à la fin
 
 ### Changed
 - La fiche « Données bibliographiques » affiche désormais des séparateurs visuels entre les groupes de champs par cercle d'intérêt (Socle, Très utile, Valeur variable), reprenant le même habillage que le panneau de configuration des champs bibliographiques
-- Le remplissage du formulaire pendant la recherche ISBN devient incrémental (source par source) au lieu d'un rendu unique en fin de recherche
 
 ### Fixed
 - L'envoi vers Notion est désormais bloqué avec un message explicite si le Titre ou l'Auteur est vide, plutôt que de créer silencieusement une page incomplète

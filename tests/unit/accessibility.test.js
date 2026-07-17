@@ -37,7 +37,7 @@ describe('Accessibilité RGAA — index.html', () => {
   });
 
   test('les panneaux masqués ont aria-hidden="true"', () => {
-    ['config-panel', 'devlog', 'doc-panel', 'search-skeleton'].forEach(id => {
+    ['config-panel', 'devlog', 'doc-panel'].forEach(id => {
       expect(document.getElementById(id)?.getAttribute('aria-hidden')).toBe('true');
     });
   });
