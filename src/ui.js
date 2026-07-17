@@ -174,6 +174,8 @@ export function fillForm(b) {
   toggleLu();
   document.getElementById('found-title').textContent = b.titre || (b.isbn ? 'ISBN : ' + b.isbn : '');
   document.getElementById('source-badge').textContent = b.source ? `Source : ${b.source}` : 'Saisie manuelle';
+  const notionActions = document.getElementById('notion-actions');
+  if (notionActions) notionActions.innerHTML = '';
 
   _searchLog = b.searchLog ?? [];
   _sourceIds = b.sourceIds ?? {};

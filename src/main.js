@@ -60,24 +60,31 @@ function showNotionChoice(result, isbn) {
     setCurrentPageId(result.pageId);
     fillFormFromNotion(result.book);
 
-    // Proposer de compléter les champs vides via les sources bibliographiques
+    // Proposer de compléter les champs vides via les sources bibliographiques —
+    // positionné dans le cadre du titre plutôt que dans la zone de statut, pour rester
+    // visible et associé à la fiche pendant toute l'édition du formulaire.
     statusEl.innerHTML = '';
     statusEl.style.whiteSpace = '';
-    const btnComplement = document.createElement('button');
-    btnComplement.textContent = 'Compléter les champs avec les sources bibliothéquaires';
-    btnComplement.style.cssText = 'height:34px;font-size:12px;background:none;color:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:0 1rem;cursor:pointer;width:auto;margin-top:2px;';
-    btnComplement.addEventListener('click', async () => {
-      btnComplement.disabled = true;
-      btnComplement.textContent = '🔄 Recherche en cours…';
-      const anyFilled = await complementFromSources(isbn);
-      if (anyFilled) {
-        statusEl.textContent = '✓ Champs vides complétés depuis les sources.';
-        setTimeout(() => { statusEl.textContent = ''; }, 3000);
-      } else {
-        statusEl.textContent = '';
-      }
-    });
-    statusEl.appendChild(btnComplement);
+    const notionActions = document.getElementById('notion-actions');
+    if (notionActions) {
+      notionActions.innerHTML = '';
+      const btnComplement = document.createElement('button');
+      btnComplement.textContent = 'Compléter les champs avec les sources bibliothéquaires';
+      btnComplement.style.cssText = 'height:34px;font-size:12px;background:none;color:var(--muted);border:1px solid var(--border);border-radius:var(--radius);padding:0 1rem;cursor:pointer;width:auto;margin-top:8px;';
+      btnComplement.addEventListener('click', async () => {
+        btnComplement.disabled = true;
+        btnComplement.textContent = '🔄 Recherche en cours…';
+        const anyFilled = await complementFromSources(isbn);
+        if (anyFilled) {
+          statusEl.textContent = '✓ Champs vides complétés depuis les sources.';
+          setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } else {
+          statusEl.textContent = '';
+        }
+        btnComplement.remove();
+      });
+      notionActions.appendChild(btnComplement);
+    }
   });
 
   const btnAdd = document.createElement('button');

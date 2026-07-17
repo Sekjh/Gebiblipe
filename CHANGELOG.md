@@ -15,6 +15,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ### Changed
 - La fiche « Données bibliographiques » affiche désormais des séparateurs visuels entre les groupes de champs par cercle d'intérêt (Socle, Très utile, Valeur variable), reprenant le même habillage que le panneau de configuration des champs bibliographiques
+- Bouton « Ajouter sans ISBN » renommé en « Nouveau sans ISBN »
+- Le bouton « Compléter les champs avec les sources bibliothéquaires » (après chargement d'une fiche Notion) est désormais positionné dans le cadre du titre de l'œuvre plutôt que dans la zone de statut
 
 ### Fixed
 - L'envoi vers Notion est désormais bloqué avec un message explicite si le Titre ou l'Auteur est vide, plutôt que de créer silencieusement une page incomplète
