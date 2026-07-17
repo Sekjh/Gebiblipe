@@ -1,4 +1,5 @@
 import { isbn13to10 } from './isbn.js';
+import { BIB_FIELDS, MERGE_KEYS } from './champs.js';
 
 // Normalise les codes langue vers ISO 639-1 (2 lettres) — les catalogues Unimarc (BnF) et
 // OpenLibrary renvoient des codes ISO 639-2 (3 lettres, ex. "fre"), Google Books renvoie déjà
@@ -127,4 +128,83 @@ export async function fetchCover(raw) {
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
   return null;
+}
+
+// Registre unique des sources bibliographiques — pilote l'ordre de préférence dans
+// resolveFromSources() (le moteur préféré passe en tête, les autres suivent dans cet ordre fixe).
+const FETCHER_REGISTRY = [
+  { engine: 'bnf',         fn: fetchBnF,         name: 'BnF' },
+  { engine: 'openlibrary', fn: fetchOpenLibrary, name: 'OpenLibrary' },
+  { engine: 'google',      fn: fetchGoogle,      name: 'Google Books' },
+  { engine: 'sudoc',       fn: fetchSudoc,       name: 'SUDOC' },
+];
+function orderedFetchers(engine) {
+  const first = FETCHER_REGISTRY.find(f => f.engine === engine) || FETCHER_REGISTRY[0];
+  return [first, ...FETCHER_REGISTRY.filter(f => f !== first)];
+}
+
+// Interroge les sources bibliographiques (dans l'ordre de préférence du moteur choisi) et fusionne
+// leurs résultats dans une copie de `current` — fusion « premier champ non vide gagne », jamais
+// d'écrasement d'une valeur déjà présente (utile pour compléter une fiche partiellement remplie,
+// venue de Notion ou déjà éditée). `activeKeys` restreint les champs bibliographiques ciblés aux
+// champs actuellement activés dans la configuration (voir getActiveBibFields() dans champs.js).
+//
+// stopWhenComplete (true par défaut) arrête d'interroger les sources suivantes dès que tous les
+// champs cibles sont remplis — comportement historique du formulaire unitaire (lookup()/
+// complementFromSources() dans ui.js). En mode import en masse (bulkImport.js), on veut au
+// contraire toujours interroger les 4 sources pour rafraîchir les identifiants pivots même quand
+// les champs bibliographiques sont déjà complets (une source peut apporter un identifiant pivot
+// sans contribuer à aucun champ bibliographique) : passer stopWhenComplete: false dans ce cas.
+export async function resolveFromSources(raw, current, activeKeys, engine, { stopWhenComplete = true } = {}) {
+  const book = { ...current, isbn: raw };
+  for (const key of MERGE_KEYS) if (!book[key]) book[key] = '';
+  book.fieldSources = { ...(current.fieldSources || {}) };
+  const sourceIds = { ...(current.sourceIds || {}) };
+  const searchLog = [];
+  const contributedFields = [];
+  const sources = [];
+
+  const fetchers = orderedFetchers(engine).map(f => f.fn);
+  const fetcherNames = new Map(FETCHER_REGISTRY.map(f => [f.fn, f.name]));
+  const targetFields = ['titre', 'auteur', ...BIB_FIELDS.filter(f => !f.isCover).map(f => f.key)]
+    .filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
+
+  for (let i = 0; i < fetchers.length; i++) {
+    const fetcher = fetchers[i];
+    if (stopWhenComplete && targetFields.every(f => book[f])) {
+      for (const f of fetchers.slice(i)) {
+        searchLog.push({ source: fetcherNames.get(f), status: 'non_consulté', fields: [] });
+      }
+      break;
+    }
+    const tmp = { isbn: raw, source: '' };
+    for (const key of MERGE_KEYS) tmp[key] = '';
+    let logStatus = 'non_trouvé';
+    try {
+      await fetcher(raw, tmp);
+      logStatus = tmp.source ? 'trouvé' : 'non_trouvé';
+    } catch {
+      logStatus = 'erreur';
+    }
+    if (tmp.sourceIds) Object.assign(sourceIds, tmp.sourceIds);
+    const contributed = [];
+    if (tmp.source) {
+      for (const key of MERGE_KEYS) {
+        if (key !== 'titre' && key !== 'auteur' && !activeKeys.has(key)) continue;
+        if (!book[key] && tmp[key]) { book[key] = tmp[key]; book.fieldSources[key] = tmp.source; contributed.push(key); }
+      }
+    }
+    searchLog.push({
+      source: tmp.source || fetcherNames.get(fetcher),
+      status: contributed.length > 0 ? 'importé' : logStatus,
+      fields: contributed,
+    });
+    if (contributed.length && tmp.source) sources.push(tmp.source);
+    contributedFields.push(...contributed);
+  }
+
+  book.source = sources.length ? sources.join(' • ') : (current.source || '');
+  book.sourceIds = sourceIds;
+  const foundByAnySource = searchLog.some(e => e.status === 'trouvé' || e.status === 'importé');
+  return { book, sourceIds, searchLog, contributedFields, foundByAnySource };
 }

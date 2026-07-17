@@ -17,7 +17,40 @@
       <button id="btn-lookup">Rechercher</button>
     </div>
     <p id="status" class="status" aria-live="polite" aria-atomic="true"></p>
-    <button id="btn-add-manual" class="outline" style="margin-top:6px;">Nouveau sans ISBN</button>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button id="btn-add-manual" class="outline">Nouveau sans ISBN</button>
+      <button id="btn-bulk-import" class="outline">Import en masse (ISBN)</button>
+    </div>
+  </div>
+
+  <div id="bulk-import-section" style="display:none;" aria-hidden="true">
+    <div class="card">
+      <p class="section-title">Import en masse d'ISBN</p>
+      <label for="bulk-isbn-input">ISBN à importer (un par ligne)</label>
+      <textarea id="bulk-isbn-input" rows="8" placeholder="9782070360024&#10;9782130506653&#10;…"></textarea>
+      <div id="bulk-invalid-lines" aria-live="polite" aria-atomic="true"></div>
+      <button id="btn-bulk-process" style="margin-top:8px;">Lancer le traitement</button>
+      <p id="bulk-progress-status" class="status" aria-live="polite" aria-atomic="true"></p>
+    </div>
+    <div class="card" id="bulk-results-card" style="display:none;" aria-hidden="true">
+      <h2 id="bulk-results-heading" tabindex="-1">Résultats</h2>
+      <div class="bulk-table-wrap">
+        <table class="bulk-table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Inclure</span></th>
+              <th scope="col">ISBN</th>
+              <th scope="col">Titre</th>
+              <th scope="col">Statut</th>
+              <th scope="col">Champs modifiés</th>
+            </tr>
+          </thead>
+          <tbody id="bulk-results-body"></tbody>
+        </table>
+      </div>
+      <button id="btn-bulk-send">Envoyer les entrées cochées vers Notion</button>
+      <p id="bulk-send-status" class="status" aria-live="polite" aria-atomic="true"></p>
+    </div>
   </div>
 
   <div id="form-section">
@@ -279,6 +312,7 @@
     <ul class="doc-list">
       <li>Recherche par ISBN — validation checksum, conversion ISBN-13/10</li>
       <li>Ajout manuel sans ISBN via le bouton « Nouveau sans ISBN » — formulaire vide éditable, Titre et Auteur obligatoires avant envoi ; case à cocher technique « Saisie manuelle » cochée automatiquement dans Notion dès qu'aucune source bibliographique n'a contribué (ajout manuel ou recherche ISBN infructueuse)</li>
+      <li>Import en masse d'ISBN via le bouton « Import en masse (ISBN) » — champ libre où coller une liste d'ISBN (un par ligne) ; chaque ISBN est vérifié dans Notion, ses champs bibliographiques vides sont complétés via les 4 sources, ses identifiants techniques et sa version GEBIBLIPE sont rafraîchis, et un tableau récapitulatif (statut, champs modifiés) permet de valider ou d'exclure chaque entrée avant l'envoi groupé vers Notion ; « Saisie manuelle » est cochée dès qu'aucune source n'a retrouvé le livre, même pour une fiche déjà présente dans Notion</li>
       <li>Sources bibliographiques multi-moteurs : BnF (recommandée), OpenLibrary, Google Books, SUDOC (catalogue collectif universitaire)</li>
       <li>Enrichissement automatique avec fallback — une source suivante est consultée tant qu'un champ bibliographique sélectionné manque</li>
       <li>Champs bibliographiques configurables (Éditeur, Date édition, Langue, Pages, Couverture, Format/reliure, Collection, Genre, Résumé) via un panneau dédié, regroupés par cercle d'intérêt selon leur taux de complétion (Socle, Très utile, Valeur variable) — Titre et Auteur affichés en tête du Cercle 1 comme toujours actifs, ISBN toujours présent ; le regroupement par cercle est aussi visible directement dans la fiche de saisie, avec un séparateur par cercle</li>

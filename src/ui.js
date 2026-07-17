@@ -1,25 +1,9 @@
 import { THEMES } from './themes.js';
 import { validateIsbn } from './isbn.js';
-import { fetchBnF, fetchOpenLibrary, fetchGoogle, fetchSudoc, fetchCover } from './fetchers.js';
+import { fetchCover, resolveFromSources } from './fetchers.js';
 import { callClaude } from './claude.js';
-import { MANDATORY_FIELDS, BIB_FIELDS, PIVOT_FIELDS, getActiveBibFields } from './champs.js';
+import { MANDATORY_FIELDS, BIB_FIELDS, PIVOT_FIELDS, MERGE_KEYS, getActiveBibFields } from './champs.js';
 import { getEnabledBibFields, setEnabledBibFields } from './config.js';
-
-const MERGE_KEYS = ['titre', 'auteur', ...BIB_FIELDS.map(f => f.key)];
-
-// Registre unique des sources bibliographiques — pilote l'ordre de préférence dans
-// lookup() et complementFromSources() (le moteur préféré passe en tête, les autres
-// suivent dans cet ordre fixe).
-const FETCHER_REGISTRY = [
-  { engine: 'bnf',         fn: fetchBnF,         name: 'BnF' },
-  { engine: 'openlibrary', fn: fetchOpenLibrary, name: 'OpenLibrary' },
-  { engine: 'google',      fn: fetchGoogle,      name: 'Google Books' },
-  { engine: 'sudoc',       fn: fetchSudoc,       name: 'SUDOC' },
-];
-function orderedFetchers(engine) {
-  const first = FETCHER_REGISTRY.find(f => f.engine === engine) || FETCHER_REGISTRY[0];
-  return [first, ...FETCHER_REGISTRY.filter(f => f !== first)];
-}
 
 let _searchLog = [];
 export function getSearchLog() { return _searchLog; }
@@ -335,50 +319,11 @@ export async function lookup(isbnArg = '') {
 
   const engine = localStorage.getItem('search_engine') || 'bnf';
   const activeKeys = new Set(getActiveBibFields().map(f => f.key));
-  const b = { isbn: raw, source: '' };
-  for (const key of MERGE_KEYS) b[key] = '';
+  const empty = { isbn: raw, source: '' };
+  for (const key of MERGE_KEYS) empty[key] = '';
 
-  const fetchers = orderedFetchers(engine).map(f => f.fn);
-  const fetcherNames = new Map(FETCHER_REGISTRY.map(f => [f.fn, f.name]));
-  b.searchLog = [];
-  b.fieldSources = {};
-  const sources = [];
-  const targetFields = ['titre', 'auteur', ...BIB_FIELDS.filter(f => !f.isCover).map(f => f.key)]
-    .filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
-
-  for (let i = 0; i < fetchers.length; i++) {
-    const fetcher = fetchers[i];
-    if (targetFields.every(f => b[f])) {
-      for (const f of fetchers.slice(i)) {
-        b.searchLog.push({ source: fetcherNames.get(f), status: 'non_consulté', fields: [] });
-      }
-      break;
-    }
-    const tmp = { isbn: raw, source: '' };
-    for (const key of MERGE_KEYS) tmp[key] = '';
-    let logStatus = 'non_trouvé';
-    try {
-      await fetcher(raw, tmp);
-      logStatus = tmp.source ? 'trouvé' : 'non_trouvé';
-    } catch {
-      logStatus = 'erreur';
-    }
-    if (tmp.sourceIds) b.sourceIds = { ...(b.sourceIds || {}), ...tmp.sourceIds };
-    const contributed = [];
-    if (tmp.source) {
-      for (const key of MERGE_KEYS) {
-        if (key !== 'titre' && key !== 'auteur' && !activeKeys.has(key)) continue;
-        if (!b[key] && tmp[key]) { b[key] = tmp[key]; b.fieldSources[key] = tmp.source; contributed.push(key); }
-      }
-    }
-    b.searchLog.push({
-      source: tmp.source || fetcherNames.get(fetcher),
-      status: contributed.length > 0 ? 'importé' : logStatus,
-      fields: contributed,
-    });
-    if (contributed.length && tmp.source) sources.push(tmp.source);
-  }
-  b.source = sources.join(' • ');
+  const { book: b, searchLog } = await resolveFromSources(raw, empty, activeKeys, engine, { stopWhenComplete: true });
+  b.searchLog = searchLog;
 
   setStatus(b.titre ? '' : 'ISBN introuvable — remplis manuellement.');
 
@@ -536,34 +481,21 @@ export async function complementFromSources(isbn) {
   const activeKeys = new Set(getActiveBibFields().map(f => f.key));
   const idMap = { titre: 'f-titre', auteur: 'f-auteur',
     ...Object.fromEntries(BIB_FIELDS.filter(f => !f.isCover).map(f => [f.key, f.id])) };
-  const current = Object.fromEntries(MERGE_KEYS.map(key => [key, idMap[key] ? get(idMap[key]) : '']));
-  const targetFields = ['titre', 'auteur', ...BIB_FIELDS.filter(f => !f.isCover).map(f => f.key)]
-    .filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
+  const current = { isbn, source: '', sourceIds: { ..._sourceIds } };
+  for (const key of MERGE_KEYS) current[key] = idMap[key] ? get(idMap[key]) : '';
   const hasCover = () => {
     const img = document.getElementById('cover-img');
     return img && img.style.display !== 'none' && !!img.src;
   };
 
-  const fetchers = orderedFetchers(engine).map(f => f.fn);
+  const { book, sourceIds, contributedFields } = await resolveFromSources(isbn, current, activeKeys, engine, { stopWhenComplete: true });
+  _sourceIds = sourceIds;
 
   let anyFilled = false;
-
-  for (const fetcher of fetchers) {
-    if (targetFields.every(f => current[f])) break;
-    const tmp = { isbn, source: '' };
-    for (const key of MERGE_KEYS) tmp[key] = '';
-    try { await fetcher(isbn, tmp); } catch { continue; }
-    if (tmp.sourceIds) _sourceIds = { ..._sourceIds, ...tmp.sourceIds };
-    if (!tmp.source) continue;
-    for (const key of MERGE_KEYS) {
-      if (key !== 'titre' && key !== 'auteur' && !activeKeys.has(key)) continue;
-      if (!idMap[key]) continue;
-      if (!current[key] && tmp[key]) {
-        setField(idMap[key], tmp[key]);
-        current[key] = tmp[key];
-        anyFilled = true;
-      }
-    }
+  for (const key of contributedFields) {
+    if (!idMap[key]) continue;
+    setField(idMap[key], book[key]);
+    anyFilled = true;
   }
 
   if (activeKeys.has('couverture') && !hasCover()) {
@@ -670,5 +602,120 @@ export function toggleBibFieldsPanel() {
     renderBibFieldsChecklist();
     const status = document.getElementById('bib-fields-status');
     if (status) status.textContent = '';
+  }
+}
+
+// ── Import en masse d'ISBN (voir src/bulkImport.js pour l'orchestration) ───────────────────────
+
+function escapeHtml(s = '') {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Jamais l'information portée par la seule couleur (RGAA 3.1) : chaque statut combine une icône,
+// une classe couleur et un texte, sur le même principe que STATUS_META dans toggleSourcePopover().
+export const BULK_STATUS_META = {
+  new:    { icon: '＋', cls: 'sp-ok',   label: 'Nouveau' },
+  update: { icon: '↻', cls: 'sp-found', label: 'Mise à jour' },
+  manuel: { icon: '⚠', cls: 'sp-warn',  label: 'Saisie manuelle' },
+};
+
+const BULK_FIELD_LABELS = Object.fromEntries([...MANDATORY_FIELDS, ...BIB_FIELDS, ...PIVOT_FIELDS].map(f => [f.key, f.label]));
+
+function bulkChangedFieldsLabel(result) {
+  const labels = [...(result.changedFields || []), ...(result.pivotFieldsUpdated || [])]
+    .map(k => BULK_FIELD_LABELS[k] || k);
+  return labels.length ? labels.join(', ') : '—';
+}
+
+function bulkResultRowHtml(result, index) {
+  const meta = BULK_STATUS_META[result.status] || BULK_STATUS_META.manuel;
+  const titre = escapeHtml(result.titre || '(sans titre)');
+  const isbn = escapeHtml(result.isbn);
+  const rowId = `bulk-row-${index}`;
+  return `<tr data-bulk-index="${index}">
+    <td><input type="checkbox" id="${rowId}" checked><label for="${rowId}" class="sr-only">Inclure « ${titre} » (${isbn})</label></td>
+    <td>${isbn}</td>
+    <td>${titre}</td>
+    <td><span class="sp-status ${meta.cls}">${meta.icon} ${meta.label}</span></td>
+    <td>${escapeHtml(bulkChangedFieldsLabel(result))}</td>
+  </tr>`;
+}
+
+function bulkInvalidLinesHtml(invalid, duplicates) {
+  const parts = [];
+  if (invalid.length) {
+    parts.push(`<p class="bulk-lines-title">⚠ ${invalid.length} ligne(s) invalide(s) ignorée(s) (ISBN incorrect)</p>` +
+      `<ul>${invalid.map(l => `<li>ligne ${l.line} : « ${escapeHtml(l.raw)} »</li>`).join('')}</ul>`);
+  }
+  if (duplicates.length) {
+    parts.push(`<p class="bulk-lines-title">ℹ ${duplicates.length} doublon(s) ignoré(s) (déjà présent plus haut dans la liste)</p>` +
+      `<ul>${duplicates.map(l => `<li>ligne ${l.line} : ${escapeHtml(l.isbn)}</li>`).join('')}</ul>`);
+  }
+  return parts.length ? `<div class="bulk-lines">${parts.join('')}</div>` : '';
+}
+
+// Affiche les lignes invalides/dupliquées dès le parsing, avant même de lancer le traitement —
+// ne jamais les faire disparaître silencieusement.
+export function renderBulkInvalidLines(invalid, duplicates) {
+  const el = document.getElementById('bulk-invalid-lines');
+  if (!el) return;
+  el.innerHTML = bulkInvalidLinesHtml(invalid, duplicates);
+}
+
+// Construit le tableau de résultats complet (utilisé pour un rendu initial vide, les lignes sont
+// ensuite ajoutées une à une par appendBulkResultRow au fil du traitement — voir main.js).
+export function initBulkResultsTable() {
+  const card = document.getElementById('bulk-results-card');
+  const body = document.getElementById('bulk-results-body');
+  const sendStatus = document.getElementById('bulk-send-status');
+  if (!card || !body) return;
+  body.innerHTML = '';
+  if (sendStatus) sendStatus.textContent = '';
+  card.style.display = 'block';
+  card.setAttribute('aria-hidden', 'false');
+}
+
+// Ajoute une ligne de résultat en incrémental (appelé depuis onProgress pendant processFile) —
+// évite un écran vide pendant tout le traitement, qui peut prendre plusieurs minutes pour une
+// longue liste (chaque ISBN interroge jusqu'à 4 sources bibliographiques).
+export function appendBulkResultRow(result, index) {
+  const body = document.getElementById('bulk-results-body');
+  if (!body) return;
+  body.insertAdjacentHTML('beforeend', bulkResultRowHtml(result, index));
+}
+
+// Récupère les ISBN dont la case « Inclure » est cochée, dans l'ordre du tableau.
+export function getCheckedBulkIndices(count) {
+  const indices = [];
+  for (let i = 0; i < count; i++) {
+    if (document.getElementById(`bulk-row-${i}`)?.checked) indices.push(i);
+  }
+  return indices;
+}
+
+// Met à jour le statut d'envoi d'une ligne (icône + texte, jamais la couleur seule) une fois
+// sendBatch() passé sur cette ligne.
+export function setBulkRowSendStatus(index, ok, error) {
+  const row = document.querySelector(`#bulk-results-body tr[data-bulk-index="${index}"]`);
+  if (!row) return;
+  const cell = row.children[3];
+  const span = document.createElement('span');
+  span.className = 'sp-status ' + (ok ? 'sp-ok' : 'sp-err');
+  span.textContent = ' · ' + (ok ? '✓ envoyé' : '✗ ' + (error || 'échec'));
+  cell.appendChild(span);
+}
+
+export function toggleBulkImportPanel() {
+  const section = document.getElementById('bulk-import-section');
+  if (!section) return;
+  const visible = section.style.display !== 'none';
+  section.style.display = visible ? 'none' : 'block';
+  section.setAttribute('aria-hidden', visible ? 'true' : 'false');
+  if (!visible) {
+    document.getElementById('bulk-isbn-input').value = '';
+    document.getElementById('bulk-invalid-lines').innerHTML = '';
+    document.getElementById('bulk-progress-status').textContent = '';
+    const card = document.getElementById('bulk-results-card');
+    if (card) { card.style.display = 'none'; card.setAttribute('aria-hidden', 'true'); }
   }
 }

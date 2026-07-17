@@ -41,3 +41,7 @@ export function getActiveBibFields() {
   const enabled = getEnabledBibFields() ?? BIB_FIELDS.filter(f => f.defaultOn).map(f => f.key);
   return BIB_FIELDS.filter(f => enabled.includes(f.key));
 }
+
+// Clés fusionnées par les sources bibliographiques (src/fetchers.js#resolveFromSources) et par
+// la fiche de saisie (src/ui.js) — Titre/Auteur (toujours actifs) suivis des clés BIB_FIELDS.
+export const MERGE_KEYS = ['titre', 'auteur', ...BIB_FIELDS.map(f => f.key)];

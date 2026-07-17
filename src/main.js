@@ -1,7 +1,9 @@
-import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources, renderBibFieldsCard, toggleBibFieldsPanel, saveBibFieldsConfig, startManualEntry } from './ui.js';
+import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources, renderBibFieldsCard, toggleBibFieldsPanel, saveBibFieldsConfig, startManualEntry, toggleBulkImportPanel, renderBulkInvalidLines, initBulkResultsTable, appendBulkResultRow, getCheckedBulkIndices, setBulkRowSendStatus } from './ui.js';
 import { sendToNotion, saveConfig, toggleConfig, lookupFromNotion, setCurrentPageId, clearCurrentPageId, getCurrentPageId, updateConfigWarning } from './notion.js';
 import { validateIsbn } from './isbn.js';
-import { getConfig } from './config.js';
+import { getConfig, getMissingConfigKeys } from './config.js';
+import { getActiveBibFields } from './champs.js';
+import { parseIsbnList, processFile, sendBatch } from './bulkImport.js';
 
 // Populate year select (1980 → current year)
 const sel = document.getElementById('f-datelu-annee');
@@ -163,6 +165,77 @@ document.getElementById('btn-add-manual').addEventListener('click', () => {
   clearCurrentPageId();
   document.getElementById('btn-send-notion').textContent = 'Envoyer dans Notion';
   startManualEntry();
+});
+
+// ── Import en masse d'ISBN ───────────────────────────────────────────────────
+document.getElementById('btn-bulk-import').addEventListener('click', toggleBulkImportPanel);
+
+let _bulkRecords = [];
+
+document.getElementById('btn-bulk-process').addEventListener('click', async () => {
+  const progressEl = document.getElementById('bulk-progress-status');
+  const cfg = getConfig();
+  if (getMissingConfigKeys(cfg).length > 0) {
+    progressEl.textContent = '⚙ Configure d\'abord le token Notion (lien en bas de page).';
+    return;
+  }
+
+  const { valid, invalid, duplicates } = parseIsbnList(document.getElementById('bulk-isbn-input').value);
+  renderBulkInvalidLines(invalid, duplicates);
+
+  if (valid.length === 0) {
+    progressEl.textContent = 'Aucun ISBN valide à traiter.';
+    return;
+  }
+
+  const btnProcess = document.getElementById('btn-bulk-process');
+  btnProcess.disabled = true;
+  progressEl.textContent = valid.length > 30
+    ? `⏳ ${valid.length} ISBN à traiter, cela peut prendre plusieurs minutes…`
+    : '🔄 Traitement en cours…';
+
+  initBulkResultsTable();
+  _bulkRecords = [];
+  const engine = localStorage.getItem('search_engine') || 'bnf';
+  const activeKeys = new Set(getActiveBibFields().map(f => f.key));
+
+  await processFile(valid, cfg, engine, activeKeys, (done, total, result) => {
+    _bulkRecords.push(result);
+    appendBulkResultRow(result, _bulkRecords.length - 1);
+    progressEl.textContent = `🔄 Traitement en cours… (${done}/${total})`;
+  });
+
+  progressEl.textContent = `✅ Traitement terminé — ${_bulkRecords.length} ISBN traité(s).`;
+  btnProcess.disabled = false;
+  document.getElementById('bulk-results-heading')?.focus();
+});
+
+document.getElementById('btn-bulk-send').addEventListener('click', async () => {
+  const sendStatus = document.getElementById('bulk-send-status');
+  const indices = getCheckedBulkIndices(_bulkRecords.length);
+  if (indices.length === 0) {
+    sendStatus.textContent = 'Aucune entrée cochée.';
+    return;
+  }
+
+  const btnSend = document.getElementById('btn-bulk-send');
+  btnSend.disabled = true;
+  sendStatus.textContent = '🔄 Envoi en cours…';
+
+  const cfg = getConfig();
+  const records = indices.map(i => _bulkRecords[i]);
+  const batch = await sendBatch(records, cfg, (done, total, result) => {
+    setBulkRowSendStatus(indices[done - 1], result.ok, result.error);
+    sendStatus.textContent = `🔄 Envoi en cours… (${done}/${total})`;
+  });
+
+  btnSend.disabled = false;
+  if (!batch.ok) {
+    sendStatus.textContent = '🔴 ' + batch.error;
+    return;
+  }
+  const okCount = batch.results.filter(r => r.ok).length;
+  sendStatus.textContent = `✅ ${okCount}/${batch.results.length} entrée(s) envoyée(s) avec succès.`;
 });
 
 // Cmd/Ctrl+Enter anywhere in the form sends to Notion

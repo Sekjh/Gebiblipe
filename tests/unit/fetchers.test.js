@@ -14,7 +14,7 @@ const sudocEmpty = readFileSync(join(fixturesDir, 'sudoc-empty.xml'), 'utf8');
 const olData    = JSON.parse(readFileSync(join(fixturesDir, 'openlibrary-response.json'), 'utf8'));
 const googleData = JSON.parse(readFileSync(join(fixturesDir, 'google-response.json'), 'utf8'));
 
-import { fetchWithTimeout, fetchBnF, fetchOpenLibrary, fetchGoogle, fetchSudoc, fetchCover } from '../../src/fetchers.js';
+import { fetchWithTimeout, fetchBnF, fetchOpenLibrary, fetchGoogle, fetchSudoc, fetchCover, resolveFromSources } from '../../src/fetchers.js';
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn());
@@ -223,5 +223,62 @@ describe('fetchCover', () => {
     });
     const url = await fetchCover('9782070360024');
     expect(url).toMatch(/openlibrary\.org/);
+  });
+});
+
+// ─── resolveFromSources ────────────────────────────────────────────────────
+
+describe('resolveFromSources', () => {
+  test('interroge toutes les sources même quand tous les champs cibles sont déjà remplis (stopWhenComplete:false), et foundByAnySource reste vrai sans nouvelle contribution', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfFound })     // bnf
+      .mockResolvedValueOnce({ ok: true, json: async () => olData })      // openlibrary
+      .mockResolvedValueOnce({ ok: true, json: async () => googleData }) // google
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocFound }); // sudoc
+
+    const activeKeys = new Set(['editeur', 'dateed', 'language', 'pages']);
+    const current = {
+      isbn: '9782070360024', source: 'Notion',
+      titre: 'Titre déjà présent', auteur: 'Auteur déjà présent',
+      editeur: 'Éditeur déjà présent', dateed: '2000', language: 'fr', pages: '300',
+    };
+
+    const result = await resolveFromSources('9782070360024', current, activeKeys, 'bnf', { stopWhenComplete: false });
+
+    expect(fetch).toHaveBeenCalledTimes(4);
+    expect(result.contributedFields).toEqual([]);
+    expect(result.foundByAnySource).toBe(true);
+    // jamais d'écrasement d'une valeur déjà présente
+    expect(result.book.titre).toBe('Titre déjà présent');
+    expect(result.book.editeur).toBe('Éditeur déjà présent');
+    // identifiants pivots rafraîchis malgré des champs bibliographiques déjà complets
+    expect(result.sourceIds.ark).toBeTruthy();
+    expect(result.sourceIds.ppn).toBeTruthy();
+    expect(result.sourceIds.olid).toBeTruthy();
+    expect(result.sourceIds.googleVolumeId).toBeTruthy();
+  });
+
+  test('s\'arrête dès que tous les champs cibles sont remplis quand stopWhenComplete:true (comportement historique du formulaire unitaire)', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, text: async () => bnfFound });
+    const activeKeys = new Set(['editeur', 'dateed', 'language', 'pages']);
+    const empty = { isbn: '9782070360024', source: '' };
+
+    const result = await resolveFromSources('9782070360024', empty, activeKeys, 'bnf', { stopWhenComplete: true });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(result.contributedFields).toContain('titre');
+    expect(result.foundByAnySource).toBe(true);
+  });
+
+  test('foundByAnySource reste faux quand aucune source ne retrouve le livre', async () => {
+    fetch.mockResolvedValue({ ok: true, text: async () => bnfEmpty, json: async () => ({}) });
+    const activeKeys = new Set(['editeur']);
+    const empty = { isbn: '9782070360024', source: '' };
+
+    const result = await resolveFromSources('9782070360024', empty, activeKeys, 'bnf', { stopWhenComplete: false });
+
+    expect(result.foundByAnySource).toBe(false);
+    expect(result.contributedFields).toEqual([]);
+    expect(result.book.titre).toBe('');
   });
 });

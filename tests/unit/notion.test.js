@@ -17,6 +17,7 @@ const queryTwo        = JSON.parse(readFileSync(join(fixturesDir, 'notion-query-
 import {
   lookupFromNotion, syncDatabaseProps, doSend, updatePageFull, sendToNotion,
   setCurrentPageId, clearCurrentPageId, updateConfigWarning,
+  buildProps, createNotionPage, updateNotionPage,
 } from '../../src/notion.js';
 import { APP_VERSION } from '../../src/version.js';
 
@@ -73,6 +74,23 @@ describe('lookupFromNotion', () => {
     expect(result.found).toBe(true);
     expect(result.pageId).toBe('page-older-123');
     expect(result.book.titre).toBe('Le Capital — original');
+  });
+
+  test("relit le champ 'Format' depuis Notion (régression — était silencieusement omis)", async () => {
+    const page = {
+      id: 'page-fmt-1',
+      created_time: '2023-01-01T00:00:00.000Z',
+      cover: null,
+      properties: {
+        Nom: { title: [{ plain_text: 'Titre' }] },
+        Auteur: { rich_text: [{ plain_text: 'Auteur' }] },
+        ISBN: { rich_text: [{ plain_text: '9782070360024' }] },
+        Format: { rich_text: [{ plain_text: 'Relié, jaquette' }] },
+      },
+    };
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ results: [page] }) });
+    const result = await lookupFromNotion('9782070360024', CFG);
+    expect(result.book.format).toBe('Relié, jaquette');
   });
 
   test('retourne found: false sur erreur réseau (ne lève pas)', async () => {
@@ -352,6 +370,69 @@ describe('sendToNotion — routage', () => {
     await sendToNotion();
     expect(document.getElementById('notion-status').textContent).toContain('Configure');
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+// ─── buildProps (exporté, paramétrable — réutilisé par l'import en masse) ────
+
+describe('buildProps', () => {
+  test('utilise isManualEntry()/getSourceIds() de ui.js par défaut (comportement du formulaire unitaire)', () => {
+    const get = id => ({ 'f-titre': 'Titre', 'f-auteur': 'Auteur', 'f-isbn': '9782070360024' }[id] || '');
+    const cb = () => false;
+    const props = buildProps(get, cb, { conflicts: [] });
+    expect(props['Nom'].title[0].text.content).toBe('Titre');
+    expect(props['Saisie manuelle'].checkbox).toBe(false);
+  });
+
+  test('surcharge manualEntry et sourceIds via le 4e paramètre (utilisé par bulkImport.js)', () => {
+    const get = id => ({ 'f-titre': 'Titre', 'f-auteur': 'Auteur' }[id] || '');
+    const cb = () => false;
+    const props = buildProps(get, cb, { conflicts: [] }, { manualEntry: true, sourceIds: { ark: 'ark:/123' } });
+    expect(props['Saisie manuelle'].checkbox).toBe(true);
+    expect(props['ARK BnF'].rich_text[0].text.content).toBe('ark:/123');
+  });
+});
+
+// ─── createNotionPage / updateNotionPage (appels réseau extraits) ────────────
+
+describe('createNotionPage', () => {
+  test('POST /v1/pages avec cover si coverUrl fourni', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'new-page' }) });
+    const result = await createNotionPage(CFG, { Nom: {} }, 'https://covers.example.com/x.jpg');
+    expect(result.ok).toBe(true);
+    const [url, opts] = fetch.mock.calls[0];
+    expect(opts.method).toBe('POST');
+    expect(url).toContain('/v1/pages');
+    const body = JSON.parse(opts.body);
+    expect(body.parent.database_id).toBe(CFG.dbId);
+    expect(body.cover).toEqual({ type: 'external', external: { url: 'https://covers.example.com/x.jpg' } });
+  });
+
+  test("retourne ok:false avec le message d'erreur sur réponse non-ok", async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 400, json: async () => ({ message: 'Erreur X' }) });
+    const result = await createNotionPage(CFG, {}, null);
+    expect(result.ok).toBe(false);
+    expect(result.error).toBe('Erreur X');
+  });
+
+  test('retourne ok:false sur erreur réseau', async () => {
+    fetch.mockRejectedValueOnce(new Error('DNS failure'));
+    const result = await createNotionPage(CFG, {}, null);
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain('DNS failure');
+  });
+});
+
+describe('updateNotionPage', () => {
+  test('PATCH /v1/pages/{pageId}, pas de parent dans le body', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'page-1' }) });
+    const result = await updateNotionPage('page-1', CFG, { Nom: {} }, null);
+    expect(result.ok).toBe(true);
+    const [url, opts] = fetch.mock.calls[0];
+    expect(opts.method).toBe('PATCH');
+    expect(url).toContain('/v1/pages/page-1');
+    const body = JSON.parse(opts.body);
+    expect(body.parent).toBeUndefined();
   });
 });
 

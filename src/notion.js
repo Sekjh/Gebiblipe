@@ -31,6 +31,7 @@ function mapNotionToBook(page) {
     editeur:     txt('Éditeur'),
     collection:  txt('Collection'),
     dateed:      txt('Date édition'),
+    format:      txt('Format'),
     pages:       num('Pages'),
     categories:  msel('Genre'),
     description: txt('Résumé'),
@@ -237,7 +238,7 @@ export async function sendToNotion() {
   }
 }
 
-function buildProps(get, cb, sync) {
+export function buildProps(get, cb, sync, { manualEntry = isManualEntry(), sourceIds = getSourceIds() } = {}) {
   const props = {
     'Nom':                 { title: [{ text: { content: get('f-titre') || '(sans titre)' } }] },
     'Auteur':              { rich_text: [{ text: { content: get('f-auteur') } }] },
@@ -254,7 +255,7 @@ function buildProps(get, cb, sync) {
     'Citations':           { rich_text: [{ text: { content: get('f-citations') } }] },
     'Commentaire':         { rich_text: [{ text: { content: get('f-comment') } }] },
     'Version GEBIBLIPE':   { rich_text: [{ text: { content: APP_VERSION } }] },
-    'Saisie manuelle':     { checkbox: isManualEntry() },
+    'Saisie manuelle':     { checkbox: manualEntry },
   };
 
   // Champs bibliographiques configurables — seuls les champs actifs sont envoyés
@@ -272,7 +273,6 @@ function buildProps(get, cb, sync) {
   }
 
   // Identifiants pivots — envoyés uniquement quand collectés, jamais vidés s'ils sont absents.
-  const sourceIds = getSourceIds();
   for (const f of PIVOT_FIELDS) {
     if (sourceIds[f.key]) props[f.notionProp] = { rich_text: [{ text: { content: String(sourceIds[f.key]) } }] };
   }
@@ -282,6 +282,47 @@ function buildProps(get, cb, sync) {
   return props;
 }
 
+// Appels réseau bruts, réutilisables hors DOM (formulaire unitaire ET import en masse,
+// voir src/bulkImport.js) — ne touchent jamais au DOM, retournent un résultat structuré.
+export async function createNotionPage(cfg, props, coverUrl) {
+  const body = { parent: { database_id: cfg.dbId }, properties: props };
+  if (coverUrl) body.cover = { type: 'external', external: { url: coverUrl } };
+  try {
+    const res = await fetch(notionUrl('/v1/pages', cfg), {
+      method: 'POST',
+      headers: notionHeaders(cfg.token),
+      body: JSON.stringify(body)
+    });
+    if (res.ok) return { ok: true, page: await res.json() };
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.message || String(res.status) };
+  } catch(e) {
+    return { ok: false, error: 'Erreur réseau : ' + e.message };
+  }
+}
+
+export async function updateNotionPage(pageId, cfg, props, coverUrl) {
+  const body = { properties: props };
+  if (coverUrl) body.cover = { type: 'external', external: { url: coverUrl } };
+  try {
+    const res = await fetch(notionUrl(`/v1/pages/${pageId}`, cfg), {
+      method: 'PATCH',
+      headers: notionHeaders(cfg.token),
+      body: JSON.stringify(body)
+    });
+    if (res.ok) return { ok: true, page: await res.json() };
+    const err = await res.json().catch(() => ({}));
+    return { ok: false, error: err.message || String(res.status) };
+  } catch(e) {
+    return { ok: false, error: 'Erreur réseau : ' + e.message };
+  }
+}
+
+function coverUrlFromDom() {
+  const coverImg = document.getElementById('cover-img');
+  return (coverImg.src && coverImg.style.display !== 'none') ? coverImg.src : null;
+}
+
 export async function updatePageFull(pageId, cfg, sync) {
   const get = id => document.getElementById(id)?.value?.trim() || '';
   const cb  = id => document.getElementById(id)?.checked || false;
@@ -289,29 +330,15 @@ export async function updatePageFull(pageId, cfg, sync) {
   notionStatus.textContent = '🔄 Mise à jour en cours…';
 
   const props = buildProps(get, cb, sync);
-  const body = { properties: props };
-  const coverImg = document.getElementById('cover-img');
-  if (coverImg.src && coverImg.style.display !== 'none') {
-    body.cover = { type: 'external', external: { url: coverImg.src } };
-  }
+  const result = await updateNotionPage(pageId, cfg, props, coverUrlFromDom());
 
-  try {
-    const res = await fetch(notionUrl(`/v1/pages/${pageId}`, cfg), {
-      method: 'PATCH',
-      headers: notionHeaders(cfg.token),
-      body: JSON.stringify(body)
-    });
-    if (res.ok) {
-      notionStatus.textContent = '✅ Mis à jour dans Notion !';
-      notionStatus.style.whiteSpace = 'normal';
-      setTimeout(() => { notionStatus.textContent = ''; notionStatus.style.whiteSpace = ''; }, 5000);
-    } else {
-      const err = await res.json().catch(() => ({}));
-      notionStatus.textContent = '🔴 Erreur Notion : ' + (err.message || res.status);
-      notionStatus.style.whiteSpace = 'normal';
-    }
-  } catch(e) {
-    notionStatus.textContent = '🔴 Erreur réseau : ' + e.message;
+  if (result.ok) {
+    notionStatus.textContent = '✅ Mis à jour dans Notion !';
+    notionStatus.style.whiteSpace = 'normal';
+    setTimeout(() => { notionStatus.textContent = ''; notionStatus.style.whiteSpace = ''; }, 5000);
+  } else {
+    notionStatus.textContent = '🔴 ' + (result.error.startsWith('Erreur réseau') ? result.error : 'Erreur Notion : ' + result.error);
+    notionStatus.style.whiteSpace = 'normal';
   }
 }
 
@@ -326,28 +353,14 @@ export async function doSend(cfg, sync) {
   notionStatus.textContent = '🔄 Envoi en cours…';
 
   const props = buildProps(get, cb, sync);
-  const body = { parent: { database_id: cfg.dbId }, properties: props };
-  const coverImg = document.getElementById('cover-img');
-  if (coverImg.src && coverImg.style.display !== 'none') {
-    body.cover = { type: 'external', external: { url: coverImg.src } };
-  }
+  const result = await createNotionPage(cfg, props, coverUrlFromDom());
 
-  try {
-    const res = await fetch(notionUrl('/v1/pages', cfg), {
-      method: 'POST',
-      headers: notionHeaders(cfg.token),
-      body: JSON.stringify(body)
-    });
-    if (res.ok) {
-      notionStatus.textContent = '✅ Ajouté dans Notion !' + syncMsg;
-      notionStatus.style.whiteSpace = 'normal';
-      setTimeout(() => { notionStatus.textContent = ''; notionStatus.style.whiteSpace = ''; }, 5000);
-    } else {
-      const err = await res.json().catch(() => ({}));
-      notionStatus.textContent = '🔴 Erreur Notion : ' + (err.message || res.status);
-      notionStatus.style.whiteSpace = 'normal';
-    }
-  } catch(e) {
-    notionStatus.textContent = '🔴 Erreur réseau : ' + e.message;
+  if (result.ok) {
+    notionStatus.textContent = '✅ Ajouté dans Notion !' + syncMsg;
+    notionStatus.style.whiteSpace = 'normal';
+    setTimeout(() => { notionStatus.textContent = ''; notionStatus.style.whiteSpace = ''; }, 5000);
+  } else {
+    notionStatus.textContent = '🔴 ' + (result.error.startsWith('Erreur réseau') ? result.error : 'Erreur Notion : ' + result.error);
+    notionStatus.style.whiteSpace = 'normal';
   }
 }

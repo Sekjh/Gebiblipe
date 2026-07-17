@@ -6,6 +6,12 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+- Import en masse d'ISBN via un champ de texte libre (un ISBN par ligne) : chaque ISBN est vérifié dans Notion, les champs bibliographiques vides sont complétés via les 4 sources existantes, les identifiants techniques (ARK BnF, Google Volume ID, OCLC, OLID, PPN SUDOC) et la version GEBIBLIPE sont systématiquement rafraîchis, puis un tableau récapitulatif (statut, champs modifiés) permet de décocher des entrées avant l'envoi groupé vers Notion — la case « Saisie manuelle » est cochée dès qu'aucune source bibliographique n'a retrouvé le livre, y compris pour une fiche déjà présente dans Notion (règle volontairement différente du flux unitaire)
+
+### Fixed
+- `Format` (champ bibliographique) n'était jamais relu depuis Notion lors du chargement d'une fiche existante, ce qui pouvait effacer silencieusement sa valeur réelle au renvoi — corrigé
+
 ---
 
 ## [0.58.0] — 2026-07-17
