@@ -9,7 +9,7 @@
 <body>
 
 <div class="container">
-  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.55.0 — 2026-07-17</span></h1>
+  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.56.0 — 2026-07-17</span></h1>
 
   <div class="card">
     <div class="input-row">
@@ -227,6 +227,17 @@
     </div>
         <div style="font-size:12px;line-height:1.8;">
       <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+        <span style="font-weight:600;color:var(--text);">v0.56.0</span>
+        <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
+        <div style="margin-top:8px;">
+          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Données bibliographiques</div>
+          <div style="color:var(--muted);">• Panneau dédié "champs bibliographiques" : Éditeur, Collection, Date édition, Pages, Couverture, Genre, Résumé, Langue deviennent configurables (Titre, Auteur, ISBN restent fixes)</div>
+          <div style="color:var(--muted);">• Genre, Résumé et Langue extraits automatiquement via Google Books (Genre en propriété Notion multi_select)</div>
+          <div style="color:var(--muted);">• Synchronisation Notion dynamique : les colonnes manquantes sont créées selon les champs actifs</div>
+          <div style="color:var(--muted);">• Suppression des champs personnalisés "Nationalité de l'auteur" et "Publication originale"</div>
+        </div>
+      </div>
+      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
         <span style="font-weight:600;color:var(--text);">v0.55.0</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
         <div style="margin-top:8px;">
@@ -234,7 +245,7 @@
           <div style="color:var(--muted);">• Avertissement discret (pastille + aria-label) sur le bouton "⚙ configuration" quand le token Notion, la database ID ou l'URL du proxy ne sont pas renseignés</div>
         </div>
       </div>
-      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+      <div style="padding:0.75rem 1rem;">
         <span style="font-weight:600;color:var(--text);">v0.54.1</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-04</span>
         <div style="margin-top:8px;">
@@ -242,14 +253,6 @@
           <div style="color:var(--muted);">• ESLint 9 + axe-core : lint et tests d'accessibilité RGAA automatisés (WCAG 2.0/2.1 AA)</div>
           <div style="color:var(--muted);">• Corrections RGAA : aria-live, aria-hidden, labels associés, focus, aria-label sur les boutons</div>
           <div style="color:var(--muted);">• Sécurité : encodeURIComponent sur l'ISBN dans l'URL Google Books</div>
-        </div>
-      </div>
-      <div style="padding:0.75rem 1rem;">
-        <span style="font-weight:600;color:var(--text);">v0.54.0</span>
-        <span style="color:var(--muted);margin-left:6px;">2026-06-28</span>
-        <div style="margin-top:8px;">
-          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Notion</div>
-          <div style="color:var(--muted);">• Vérification des doublons au moment de l'envoi : si l'ISBN existe déjà dans Notion, choix entre mettre à jour la fiche, créer une nouvelle entrée ou annuler</div>
         </div>
       </div>
     </div>

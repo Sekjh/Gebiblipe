@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.56.0] — 2026-07-17
+
 ### Added
 - Panneau dédié "champs bibliographiques" pour choisir les champs affichés dans la fiche (Éditeur, Collection, Date édition, Pages, Couverture, Genre, Résumé, Langue) — préférence enregistrée localement, appliquée immédiatement sans rechargement
 - Nouveaux champs extraits automatiquement via Google Books : Genre (`multi_select` Notion), Résumé, Langue
@@ -196,7 +200,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.55.0...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.56.0...HEAD
+[0.56.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.55.0...v0.56.0
 [0.55.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.1...v0.55.0
 [0.54.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.0...v0.54.1
 [0.54.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.53.0...v0.54.0
