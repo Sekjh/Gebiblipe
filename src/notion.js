@@ -1,6 +1,7 @@
 import { getConfig, notionUrl, notionHeaders, getMissingConfigKeys } from './config.js';
 import { getExpectedProps, propSchema } from './themes.js';
-import { getActiveBibFields } from './champs.js';
+import { getActiveBibFields, PIVOT_FIELDS } from './champs.js';
+import { getSourceIds } from './ui.js';
 
 // Mode création (null) ou mise à jour (pageId de la page existante)
 let _currentPageId = null;
@@ -258,6 +259,12 @@ function buildProps(get, cb, sync) {
     } else if (f.notionType === 'multi_select') {
       props[f.notionProp] = { multi_select: raw.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name })) };
     }
+  }
+
+  // Identifiants pivots — envoyés uniquement quand collectés, jamais vidés s'ils sont absents.
+  const sourceIds = getSourceIds();
+  for (const f of PIVOT_FIELDS) {
+    if (sourceIds[f.key]) props[f.notionProp] = { rich_text: [{ text: { content: String(sourceIds[f.key]) } }] };
   }
 
   for (const c of sync.conflicts) delete props[c.name];

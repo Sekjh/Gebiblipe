@@ -35,8 +35,8 @@ describe('THEMES', () => {
 describe('getExpectedProps', () => {
   const ALLOWED_TYPES = ['rich_text', 'number', 'select', 'checkbox', 'multi_select'];
 
-  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 18 propriétés', () => {
-    expect(Object.keys(getExpectedProps()).length).toBe(18);
+  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 22 propriétés (18 + 4 identifiants pivots toujours inclus)', () => {
+    expect(Object.keys(getExpectedProps()).length).toBe(22);
   });
 
   test('tous les types sont parmi les 5 types Notion autorisés', () => {

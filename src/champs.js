@@ -25,8 +25,16 @@ export const BIB_FIELDS = [
 ];
 
 // Identifiants pivots techniques collectés en best-effort par les fetchers (src/fetchers.js) dans
-// b.sourceIds{} pour un recroisement futur entre sources — jamais affichés, jamais envoyés à Notion.
-export const PIVOT_IDENTIFIER_KEYS = ['ark', 'olid', 'googleVolumeId', 'oclc'];
+// b.sourceIds{} pour un recroisement futur entre sources. Non configurables (pas de checkbox, pas
+// de cercle) : affichés en lecture seule dans le popover de sources, et envoyés à Notion dès qu'ils
+// sont disponibles (voir buildProps() dans notion.js).
+export const PIVOT_FIELDS = [
+  { key: 'ark',            label: 'ARK (BnF)',          notionProp: 'ARK BnF',          notionType: 'rich_text' },
+  { key: 'olid',           label: 'OLID (OpenLibrary)', notionProp: 'OLID',              notionType: 'rich_text' },
+  { key: 'googleVolumeId', label: 'Google Volume ID',   notionProp: 'Google Volume ID', notionType: 'rich_text' },
+  { key: 'oclc',           label: 'OCLC',               notionProp: 'OCLC',              notionType: 'rich_text' },
+];
+export const PIVOT_IDENTIFIER_KEYS = PIVOT_FIELDS.map(f => f.key);
 
 export function getActiveBibFields() {
   const enabled = getEnabledBibFields() ?? BIB_FIELDS.filter(f => f.defaultOn).map(f => f.key);

@@ -7,7 +7,8 @@
       "publish_date": "1987",
       "number_of_pages": 3428,
       "key": "/books/OL7358935M",
-      "identifiers": { "oclc": ["12345678"] }
+      "identifiers": { "oclc": ["12345678"] },
+      "languages": [{ "key": "/languages/fre" }]
     },
     "thumbnail_url": "https://covers.openlibrary.org/b/id/12345-S.jpg"
   }

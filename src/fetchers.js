@@ -1,5 +1,19 @@
 import { isbn13to10 } from './isbn.js';
 
+// Normalise les codes langue vers ISO 639-1 (2 lettres) — les catalogues Unimarc (BnF) et
+// OpenLibrary renvoient des codes ISO 639-2 (3 lettres, ex. "fre"), Google Books renvoie déjà
+// du 639-1. Codes hors table retournés tels quels plutôt que perdus.
+const LANG_CODE_MAP = {
+  fre: 'fr', fra: 'fr', eng: 'en', ger: 'de', deu: 'de', spa: 'es', esp: 'es',
+  ita: 'it', por: 'pt', lat: 'la', grc: 'el', gre: 'el', rus: 'ru', ara: 'ar',
+  jpn: 'ja', chi: 'zh', zho: 'zh', nld: 'nl', dut: 'nl',
+};
+function normalizeLanguage(code) {
+  if (!code) return '';
+  const c = code.trim().toLowerCase();
+  return LANG_CODE_MAP[c] || c;
+}
+
 export function fetchWithTimeout(url, options = {}, ms = 5000) {
   const ctrl = new AbortController();
   const tid = setTimeout(() => ctrl.abort(), ms);
@@ -24,6 +38,7 @@ export async function fetchBnF(raw, b) {
       if(!b.auteur){const na2=gfa('701','a'),nb2=gfa('701','b');b.auteur=na2.map((a,i)=>nb2[i]?nb2[i]+' '+a:a).join(', ');}
       b.editeur=gf('210','c')||gf('214','c'); b.dateed=gf('210','d')||gf('214','d');
       b.collection=gf('225','a'); b.pages=gf('215','a');
+      const lang = gf('101','a'); if (lang) b.language = normalizeLanguage(lang);
       const ark = rec.querySelector('controlfield[tag="003"]')?.textContent?.trim();
       if (ark) { b.sourceIds = b.sourceIds || {}; b.sourceIds.ark = ark; }
       if(b.titre) { b.source = (isbn === raw) ? 'BnF ISBN-13' : 'BnF ISBN-10'; return; }
@@ -45,6 +60,8 @@ export async function fetchOpenLibrary(raw, b) {
       b.titre=det.title||''; b.auteur=det.authors?.map(a=>a.name).join(', ')||'';
       b.editeur=det.publishers?.[0]||''; b.dateed=det.publish_date||''; b.pages=det.number_of_pages||'';
       if(entry.thumbnail_url) b.couverture=entry.thumbnail_url.replace('-S.','-M.');
+      const langRaw = det.languages?.[0]?.key?.replace('/languages/','');
+      if (langRaw) b.language = normalizeLanguage(langRaw);
       const olid = det.key?.replace('/books/','');
       const oclc = det.identifiers?.oclc?.[0] || det.oclc_numbers?.[0];
       if (olid || oclc) {
@@ -63,7 +80,7 @@ export async function fetchGoogle(raw, b) {
   const v=g.items[0].volumeInfo;
   b.titre=v.title||''; b.auteur=v.authors?.join(', ')||''; b.editeur=v.publisher||'';
   b.dateed=v.publishedDate||''; b.pages=v.pageCount||'';
-  b.categories=v.categories?.join(', ')||''; b.description=v.description||''; b.language=v.language||'';
+  b.categories=v.categories?.join(', ')||''; b.description=v.description||''; b.language=normalizeLanguage(v.language);
   if(v.imageLinks?.thumbnail) b.couverture=v.imageLinks.thumbnail.replace('http:','https:');
   if(g.items[0].id) { b.sourceIds = b.sourceIds || {}; b.sourceIds.googleVolumeId = g.items[0].id; }
   if(b.titre) b.source='Google Books';

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach } from 'vitest';
-import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion } from '../../src/ui.js';
+import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds } from '../../src/ui.js';
 
 // ─── detectCollection ─────────────────────────────────────────────────────────
 
@@ -349,5 +349,65 @@ describe('fillFormFromNotion', () => {
     const el = document.getElementById('f-titre');
     expect(el.classList.contains('prefilled')).toBe(false);
     expect(el.classList.contains('notion-filled')).toBe(true);
+  });
+
+  test('réinitialise les identifiants pivots (getSourceIds)', () => {
+    fillFormFromNotion(NOTION_BOOK);
+    expect(getSourceIds()).toEqual({});
+  });
+});
+
+// ─── renderBibFieldsChecklist ─────────────────────────────────────────────────
+
+describe('renderBibFieldsChecklist', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="bib-fields-checklist"></div>';
+    localStorage.clear();
+  });
+
+  test('affiche Titre et Auteur en tête du Cercle 1, verrouillés (coché + disabled)', () => {
+    renderBibFieldsChecklist();
+    const titre = document.getElementById('bibcfg-mandatory-titre');
+    const auteur = document.getElementById('bibcfg-mandatory-auteur');
+    expect(titre.checked).toBe(true);
+    expect(titre.disabled).toBe(true);
+    expect(auteur.checked).toBe(true);
+    expect(auteur.disabled).toBe(true);
+  });
+
+  test('affiche un intitulé de groupe par cercle (3 groupes)', () => {
+    renderBibFieldsChecklist();
+    const headings = document.querySelectorAll('#bib-fields-checklist .section-title');
+    expect(headings.length).toBe(3);
+    expect(headings[0].textContent).toContain('Cercle 1');
+  });
+
+  test('les champs bibliographiques configurables restent cochables (non disabled)', () => {
+    renderBibFieldsChecklist();
+    expect(document.getElementById('bibcfg-editeur').disabled).toBe(false);
+  });
+});
+
+// ─── toggleSourcePopover — identifiants pivots ────────────────────────────────
+
+describe('toggleSourcePopover — identifiants pivots', () => {
+  beforeEach(() => {
+    document.body.innerHTML = FULL_DOM + '<div id="source-popover" hidden></div>';
+    localStorage.clear();
+  });
+
+  test("affiche la section « Identifiants techniques » quand des sourceIds sont présents", () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', source: 'BnF ISBN-13', searchLog: [], fieldSources: {}, sourceIds: { ark: 'ark:/12148/cb31570438x' } });
+    toggleSourcePopover();
+    const pop = document.getElementById('source-popover');
+    expect(pop.textContent).toContain('Identifiants techniques');
+    expect(pop.textContent).toContain('ark:/12148/cb31570438x');
+  });
+
+  test("n'affiche pas la section pivots quand aucun sourceId n'est présent", () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', source: 'BnF ISBN-13', searchLog: [], fieldSources: {} });
+    toggleSourcePopover();
+    const pop = document.getElementById('source-popover');
+    expect(pop.textContent).not.toContain('Identifiants techniques');
   });
 });

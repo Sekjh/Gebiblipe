@@ -1,4 +1,4 @@
-import { getActiveBibFields } from './champs.js';
+import { getActiveBibFields, PIVOT_FIELDS } from './champs.js';
 
 export const THEMES = {
   "Philosophie": ["Esthétique","Éthique","Épistémologie","Métaphysique","Philosophie politique","Philosophie du langage","Logique","Philosophie des sciences","Histoire de la philosophie","Phénoménologie","Philosophie morale","Philosophie orientale"],
@@ -33,11 +33,14 @@ const CORE_EXPECTED_PROPS = {
 
 // Fusionne les propriétés toujours présentes avec celles des champs bibliographiques
 // actuellement activés (voir src/champs.js) — reflète l'état courant de la configuration.
+// Les identifiants pivots (PIVOT_FIELDS) sont toujours inclus : non configurables, ils sont
+// envoyés à Notion dès qu'ils sont disponibles (voir buildProps() dans notion.js).
 export function getExpectedProps() {
   const props = { ...CORE_EXPECTED_PROPS };
   for (const f of getActiveBibFields()) {
     if (f.notionProp) props[f.notionProp] = f.notionType;
   }
+  for (const f of PIVOT_FIELDS) props[f.notionProp] = f.notionType;
   return props;
 }
 

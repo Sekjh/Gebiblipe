@@ -24,6 +24,9 @@
           <datafield tag="215">
             <subfield code="a">900</subfield>
           </datafield>
+          <datafield tag="101">
+            <subfield code="a">fre</subfield>
+          </datafield>
         </record>
       </recordData>
     </record>

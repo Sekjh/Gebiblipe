@@ -18,6 +18,10 @@
     "Priorité":             { "type": "select" },
     "Note":                 { "type": "select" },
     "État":                 { "type": "select" },
-    "Collection (livre)":   { "type": "checkbox" }
+    "Collection (livre)":   { "type": "checkbox" },
+    "ARK BnF":              { "type": "rich_text" },
+    "OLID":                 { "type": "rich_text" },
+    "Google Volume ID":     { "type": "rich_text" },
+    "OCLC":                 { "type": "rich_text" }
   }
 }

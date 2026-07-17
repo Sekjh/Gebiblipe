@@ -13,6 +13,7 @@ const queryEmpty = JSON.parse(readFileSync(join(fixturesDir, 'notion-query-empty
 const queryFound = JSON.parse(readFileSync(join(fixturesDir, 'notion-query-found.json'), 'utf8'));
 
 import { sendToNotion, lookupFromNotion, setCurrentPageId, clearCurrentPageId } from '../../src/notion.js';
+import { fillForm } from '../../src/ui.js';
 
 const TOKEN = 'ntn_testtoken';
 const DBID  = 'abcdef1234567890abcdef1234567890';
@@ -153,5 +154,35 @@ describe('Flux doublon send-time — blocs constitutifs', () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => queryEmpty });
     const result = await lookupFromNotion('9999999999999', { token: TOKEN, dbId: DBID, proxy: 'https://proxy.test' });
     expect(result.found).toBe(false);
+  });
+});
+
+// ─── Identifiants pivots envoyés à Notion ────────────────────────────────────
+
+describe('Envoi des identifiants pivots à Notion', () => {
+  test('POST inclut les propriétés ARK BnF / OLID quand sourceIds est renseigné, omet les absents', async () => {
+    document.body.innerHTML = FORM_DOM + `
+      <p id="found-title"></p>
+      <p id="source-badge"></p>
+      <p id="collection-hint"></p>
+      <div id="form-section"></div>
+      <div id="datelu-block"></div>
+      <div id="note-block"></div>
+      <div id="priorite-block"></div>
+    `;
+    fillForm({
+      isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', source: 'BnF ISBN-13',
+      searchLog: [], fieldSources: {}, sourceIds: { ark: 'ark:/12148/cb31570438x', olid: 'OL123M' },
+    });
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => dbFull })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await sendToNotion();
+    const postCall = fetch.mock.calls.find(c => c[1]?.method === 'POST' && c[0].includes('/v1/pages'));
+    const body = JSON.parse(postCall[1].body);
+    expect(body.properties['ARK BnF'].rich_text[0].text.content).toBe('ark:/12148/cb31570438x');
+    expect(body.properties['OLID'].rich_text[0].text.content).toBe('OL123M');
+    expect(body.properties['Google Volume ID']).toBeUndefined();
+    expect(body.properties['OCLC']).toBeUndefined();
   });
 });

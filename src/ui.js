@@ -2,13 +2,16 @@ import { THEMES } from './themes.js';
 import { validateIsbn } from './isbn.js';
 import { fetchBnF, fetchOpenLibrary, fetchGoogle, fetchCover } from './fetchers.js';
 import { callClaude } from './claude.js';
-import { MANDATORY_FIELDS, BIB_FIELDS, getActiveBibFields } from './champs.js';
+import { MANDATORY_FIELDS, BIB_FIELDS, PIVOT_FIELDS, getActiveBibFields } from './champs.js';
 import { getEnabledBibFields, setEnabledBibFields } from './config.js';
 
 const MERGE_KEYS = ['titre', 'auteur', ...BIB_FIELDS.map(f => f.key)];
 
 let _searchLog = [];
 export function getSearchLog() { return _searchLog; }
+
+let _sourceIds = {};
+export function getSourceIds() { return _sourceIds; }
 
 let _lastIsbn = '';
 export function getLastIsbn() { return _lastIsbn; }
@@ -144,6 +147,7 @@ export function fillForm(b) {
   document.getElementById('source-badge').textContent = b.source ? `Source : ${b.source}` : 'Saisie manuelle';
 
   _searchLog = b.searchLog ?? [];
+  _sourceIds = b.sourceIds ?? {};
 
   const badgeFields = [['f-titre', 'titre'], ['f-auteur', 'auteur'],
     ...getActiveBibFields().filter(f => !f.isCover).map(f => [f.id, f.key])];
@@ -236,6 +240,7 @@ export function fillFormFromNotion(b) {
   document.getElementById('found-title').textContent = b.titre || (b.isbn ? 'ISBN : ' + b.isbn : '');
   document.getElementById('source-badge').textContent = 'Source : Notion';
   _searchLog = [];
+  _sourceIds = {};
 
   // ── Couverture ──
   const img = document.getElementById('cover-img');
@@ -315,6 +320,7 @@ export async function lookup(isbnArg = '') {
     } catch {
       logStatus = 'erreur';
     }
+    if (tmp.sourceIds) b.sourceIds = { ...(b.sourceIds || {}), ...tmp.sourceIds };
     const contributed = [];
     if (tmp.source) {
       for (const key of MERGE_KEYS) {
@@ -410,11 +416,19 @@ export function toggleSourcePopover() {
     erreur:       { icon: '✗', cls: 'sp-err' },
     non_consulté: { icon: '·', cls: 'sp-skip' },
   };
-  pop.innerHTML = _searchLog.map(({ source, status, fields }) => {
+  const rows = _searchLog.map(({ source, status, fields }) => {
     const { icon, cls } = STATUS_META[status] || STATUS_META.non_trouvé;
     const detail = fields.length ? fields.map(f => LABELS[f] || f).join(', ') : statusLabel(status);
     return `<div class="sp-row"><span class="sp-src">${source}</span><span class="sp-status ${cls}">${icon} ${detail}</span></div>`;
   }).join('');
+
+  const pivotEntries = PIVOT_FIELDS.filter(f => _sourceIds[f.key]);
+  const pivotSection = pivotEntries.length
+    ? `<p class="section-title" style="margin-top:8px;">Identifiants techniques</p>` +
+      pivotEntries.map(f => `<div class="sp-row"><span class="sp-src">${f.label}</span><span class="sp-status">${_sourceIds[f.key]}</span></div>`).join('')
+    : '';
+
+  pop.innerHTML = rows + pivotSection;
   pop.hidden = false;
 }
 
@@ -487,6 +501,7 @@ export async function complementFromSources(isbn) {
     const tmp = { isbn, source: '' };
     for (const key of MERGE_KEYS) tmp[key] = '';
     try { await fetcher(isbn, tmp); } catch { continue; }
+    if (tmp.sourceIds) _sourceIds = { ..._sourceIds, ...tmp.sourceIds };
     if (!tmp.source) continue;
     for (const key of MERGE_KEYS) {
       if (key !== 'titre' && key !== 'auteur' && !activeKeys.has(key)) continue;
@@ -548,18 +563,27 @@ const CIRCLE_LABELS = {
 };
 
 // Peuple les cases à cocher du panneau « Champs bibliographiques » depuis la config active,
-// regroupées par cercle d'intérêt (BIB_FIELDS est déjà trié par circle croissant).
+// regroupées par cercle d'intérêt (BIB_FIELDS est déjà trié par circle croissant). Les champs
+// obligatoires (MANDATORY_FIELDS, toujours cercle 1) sont affichés en tête, verrouillés (coché
+// + disabled) pour montrer qu'ils appartiennent au socle sans pouvoir être décochés.
 export function renderBibFieldsChecklist() {
   const container = document.getElementById('bib-fields-checklist');
   if (!container) return;
   const enabled = new Set(getEnabledBibFields() ?? BIB_FIELDS.filter(f => f.defaultOn).map(f => f.key));
-  let lastCircle = null;
-  container.innerHTML = BIB_FIELDS.map(f => {
+
+  const mandatoryRows = MANDATORY_FIELDS.map(f =>
+    `<div class="field checkbox-row"><input type="checkbox" id="bibcfg-mandatory-${f.key}" checked disabled><label for="bibcfg-mandatory-${f.key}">${f.label} <span style="color:var(--muted);font-size:10px;">(toujours actif)</span></label></div>`
+  ).join('');
+
+  let lastCircle = 1;
+  const bibRows = BIB_FIELDS.map(f => {
     const heading = f.circle !== lastCircle
       ? `<p class="section-title" style="margin-top:10px;">${CIRCLE_LABELS[f.circle] || ''}</p>` : '';
     lastCircle = f.circle;
     return `${heading}<div class="field checkbox-row"><input type="checkbox" id="bibcfg-${f.key}"${enabled.has(f.key) ? ' checked' : ''}><label for="bibcfg-${f.key}">${f.label}</label></div>`;
   }).join('');
+
+  container.innerHTML = `<p class="section-title">${CIRCLE_LABELS[1]}</p>${mandatoryRows}${bibRows}`;
 }
 
 // Lit les cases cochées, enregistre la config et reconstruit immédiatement la fiche bibliographique.

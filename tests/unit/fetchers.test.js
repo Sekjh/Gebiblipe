@@ -56,6 +56,7 @@ describe('fetchBnF', () => {
     expect(b.dateed).toBe('1969');
     expect(b.collection).toBe('Bibliothèque marxiste');
     expect(b.pages).toBe('900');
+    expect(b.language).toBe('fr');
     expect(b.sourceIds.ark).toBe('https://catalogue.bnf.fr/ark:/12148/cb31570438x');
   });
 
@@ -95,6 +96,7 @@ describe('fetchOpenLibrary', () => {
     expect(b.titre).toBeTruthy();
     expect(b.auteur).toContain('Proust');
     expect(b.couverture).toContain('-M.');
+    expect(b.language).toBe('fr');
     expect(b.sourceIds.olid).toBe('OL7358935M');
     expect(b.sourceIds.oclc).toBe('12345678');
   });
@@ -123,6 +125,7 @@ describe('fetchGoogle', () => {
     expect(b.source).toBe('Google Books');
     expect(b.titre).toBeTruthy();
     expect(b.couverture).toMatch(/^https:/);
+    expect(b.language).toBe('fr');
     expect(b.sourceIds.googleVolumeId).toBe('abc123XYZ');
   });
 

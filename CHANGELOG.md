@@ -8,10 +8,12 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ### Added
 - Champ bibliographique « Format / reliure » (cercle 2, saisie manuelle)
-- Identifiants pivots internes (ARK BnF, OLID, Google Volume ID, OCLC) collectés en best-effort par les sources bibliographiques pour un recroisement futur entre APIs — non affichés à l'utilisateur, non envoyés à Notion
+- Identifiants pivots (ARK BnF, OLID, Google Volume ID, OCLC) collectés en best-effort par les sources bibliographiques — affichés en lecture seule dans le popover de sources (section « Identifiants techniques ») et envoyés à Notion dès qu'ils sont disponibles (colonnes créées automatiquement)
+- Extraction de la Langue depuis BnF (zone Unimarc 101$a) et OpenLibrary, en plus de Google Books — normalisation des codes langue vers ISO 639-1
 
 ### Changed
 - Le panneau « Champs bibliographiques » et la fiche de saisie sont réorganisés par cercle d'intérêt du champ (Socle, Très utile, Valeur variable) selon le taux de complétion observé sur les API ISBN
+- Titre et Auteur (champs obligatoires) apparaissent désormais dans le panneau de configuration, sous Cercle 1, affichés comme toujours actifs (non décochables)
 - La Langue passe en champ coché par défaut (cercle 1, socle)
 
 ---

@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { localStorageStub } from '../helpers/localStorage.js';
-import { BIB_FIELDS, MANDATORY_FIELDS, PIVOT_IDENTIFIER_KEYS, getActiveBibFields } from '../../src/champs.js';
+import { BIB_FIELDS, MANDATORY_FIELDS, PIVOT_FIELDS, PIVOT_IDENTIFIER_KEYS, getActiveBibFields } from '../../src/champs.js';
 
 beforeEach(() => {
   localStorageStub.clear();
@@ -57,6 +57,21 @@ describe('BIB_FIELDS', () => {
 describe('PIVOT_IDENTIFIER_KEYS', () => {
   test('liste les 4 identifiants pivots attendus', () => {
     expect(PIVOT_IDENTIFIER_KEYS.sort()).toEqual(['ark', 'googleVolumeId', 'oclc', 'olid'].sort());
+  });
+});
+
+describe('PIVOT_FIELDS', () => {
+  test('chaque identifiant pivot a un notionProp rich_text (envoyé à Notion quand disponible)', () => {
+    for (const f of PIVOT_FIELDS) {
+      expect(f.notionProp).toBeTruthy();
+      expect(f.notionType).toBe('rich_text');
+    }
+  });
+
+  test("aucun identifiant pivot n'a de circle (non configurable par checkbox)", () => {
+    for (const f of PIVOT_FIELDS) {
+      expect(f.circle).toBeUndefined();
+    }
   });
 });
 
