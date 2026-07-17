@@ -6,6 +6,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+- Le fallback multi-API (BnF → OpenLibrary → Google Books) continue désormais d'interroger les sources suivantes tant qu'un champ bibliographique sélectionné manque (et plus seulement titre/auteur/éditeur/pages) — utile pour Genre, Résumé, Langue qui ne sont fournis que par Google Books
+
 ---
 
 ## [0.56.0] — 2026-07-17

@@ -295,11 +295,12 @@ export async function lookup(isbnArg = '') {
   b.searchLog = [];
   b.fieldSources = {};
   const sources = [];
-  const criticalFields = ['titre', 'auteur', 'editeur', 'pages'].filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
+  const targetFields = ['titre', 'auteur', ...BIB_FIELDS.filter(f => !f.isCover).map(f => f.key)]
+    .filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
 
   for (let i = 0; i < fetchers.length; i++) {
     const fetcher = fetchers[i];
-    if (criticalFields.every(f => b[f])) {
+    if (targetFields.every(f => b[f])) {
       for (const f of fetchers.slice(i)) {
         b.searchLog.push({ source: fetcherNames.get(f), status: 'non_consulté', fields: [] });
       }
@@ -467,7 +468,8 @@ export async function complementFromSources(isbn) {
   const idMap = { titre: 'f-titre', auteur: 'f-auteur',
     ...Object.fromEntries(BIB_FIELDS.filter(f => !f.isCover).map(f => [f.key, f.id])) };
   const current = Object.fromEntries(MERGE_KEYS.map(key => [key, idMap[key] ? get(idMap[key]) : '']));
-  const criticalFields = ['titre', 'auteur', 'editeur', 'pages'].filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
+  const targetFields = ['titre', 'auteur', ...BIB_FIELDS.filter(f => !f.isCover).map(f => f.key)]
+    .filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
   const hasCover = () => {
     const img = document.getElementById('cover-img');
     return img && img.style.display !== 'none' && !!img.src;
@@ -481,7 +483,7 @@ export async function complementFromSources(isbn) {
   let anyFilled = false;
 
   for (const fetcher of fetchers) {
-    if (criticalFields.every(f => current[f])) break;
+    if (targetFields.every(f => current[f])) break;
     const tmp = { isbn, source: '' };
     for (const key of MERGE_KEYS) tmp[key] = '';
     try { await fetcher(isbn, tmp); } catch { continue; }

@@ -129,3 +129,22 @@ describe('Toutes les sources échouent', () => {
     expect(document.getElementById('f-titre').value).toBe('');
   });
 });
+
+// ─── Champ sélectionné absent de la 1ère source trouvée ──────────────────────
+
+describe('Champ actif non fourni par la première source trouvée', () => {
+  test('continue vers Google Books pour le Genre même si BnF a déjà rempli titre/auteur/éditeur/pages', async () => {
+    localStorage.setItem('bib_fields', JSON.stringify(['editeur', 'collection', 'dateed', 'pages', 'couverture', 'categories']));
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfFound })   // BnF ISBN-13 : trouve tout sauf Genre
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })      // OpenLibrary ISBN-13 (ne fournit pas Genre)
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })      // OpenLibrary ISBN-10
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [{ volumeInfo: {
+        title: 'Le Capital', authors: ['Karl Marx'], categories: ['Économie'],
+      } }] }) })                                                        // Google Books : seule source du Genre
+      .mockResolvedValue({ ok: false, headers: { get: () => '0' } });   // fetchCover HEAD
+    await lookup('9782070360024');
+    expect(document.getElementById('source-badge').textContent).toContain('BnF');
+    expect(document.getElementById('source-badge').textContent).toContain('Google Books');
+  });
+});
