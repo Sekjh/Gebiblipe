@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.58.0] — 2026-07-17
+
 ### Added
 - Propriété technique « Version GEBIBLIPE » (texte), envoyée automatiquement à Notion à chaque création/mise à jour de page, reflétant une constante unique `APP_VERSION` (`src/version.js`) — colonne créée automatiquement au premier envoi (schéma dynamique)
 - Nouvelle source bibliographique SUDOC (catalogue collectif universitaire français, SRU/UNIMARC) — 4e source de fallback, positionnée après BnF/OpenLibrary/Google Books par défaut, sélectionnable comme moteur préféré dans la configuration
@@ -237,7 +241,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.57.0...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.58.0...HEAD
+[0.58.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.57.0...v0.58.0
 [0.57.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.56.1...v0.57.0
 [0.56.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.56.0...v0.56.1
 [0.56.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.55.0...v0.56.0
