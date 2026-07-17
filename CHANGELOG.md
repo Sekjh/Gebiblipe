@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.55.0] — 2026-07-17
+
 ### Added
 - Avertissement discret (pastille + `aria-label`) sur le bouton "⚙ configuration" quand le token Notion, la database ID ou l'URL du proxy ne sont pas renseignés, dès le chargement de la page
 
@@ -181,7 +185,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.1...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.55.0...HEAD
+[0.55.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.1...v0.55.0
 [0.54.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.54.0...v0.54.1
 [0.54.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.53.0...v0.54.0
 [0.53.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.52.0...v0.53.0
