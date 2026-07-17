@@ -1,5 +1,6 @@
 import { getConfig, notionUrl, notionHeaders, getMissingConfigKeys } from './config.js';
-import { EXPECTED_PROPS, propSchema } from './themes.js';
+import { getExpectedProps, propSchema } from './themes.js';
+import { getActiveBibFields } from './champs.js';
 
 // Mode création (null) ou mise à jour (pageId de la page existante)
 let _currentPageId = null;
@@ -14,6 +15,7 @@ function mapNotionToBook(page) {
   const num  = key => p[key]?.number !== null && p[key]?.number !== undefined ? String(p[key].number) : '';
   const sel  = key => p[key]?.select?.name || '';
   const chk  = key => p[key]?.checkbox || false;
+  const msel = key => (p[key]?.multi_select || []).map(o => o.name).join(', ');
 
   const datelu = txt('Date de lecture');
   const parts  = datelu.trim().split(/\s+/);
@@ -24,12 +26,13 @@ function mapNotionToBook(page) {
     isbn:        txt('ISBN'),
     titre:       ttl('Nom'),
     auteur:      txt('Auteur'),
-    nationalite: txt('Nationalité'),
     editeur:     txt('Éditeur'),
     collection:  txt('Collection'),
     dateed:      txt('Date édition'),
-    datepub:     txt('Publication originale'),
     pages:       num('Pages'),
+    categories:  msel('Genre'),
+    description: txt('Résumé'),
+    language:    txt('Langue'),
     theme:       sel('Thème'),
     soustheme:   sel('Sous-thème'),
     statut:      sel('Statut'),
@@ -88,10 +91,11 @@ export async function syncDatabaseProps(token, dbId, cfg) {
 
   const db = await dbRes.json();
   const existing = db.properties || {};
+  const expectedProps = getExpectedProps();
   const missing = [];
   const conflicts = [];
 
-  for (const [name, expectedType] of Object.entries(EXPECTED_PROPS)) {
+  for (const [name, expectedType] of Object.entries(expectedProps)) {
     if (!existing[name]) {
       missing.push(name);
     } else if (existing[name].type !== expectedType) {
@@ -102,7 +106,7 @@ export async function syncDatabaseProps(token, dbId, cfg) {
   const created = [];
   if (missing.length > 0) {
     const newProps = {};
-    for (const name of missing) newProps[name] = propSchema(EXPECTED_PROPS[name]);
+    for (const name of missing) newProps[name] = propSchema(expectedProps[name]);
     const patchRes = await fetch(notionUrl(`/v1/databases/${dbId}`, cfg), {
       method: 'PATCH',
       headers: notionHeaders(token),
@@ -228,13 +232,7 @@ function buildProps(get, cb, sync) {
   const props = {
     'Nom':                 { title: [{ text: { content: get('f-titre') || '(sans titre)' } }] },
     'Auteur':              { rich_text: [{ text: { content: get('f-auteur') } }] },
-    'Nationalité':         { rich_text: [{ text: { content: get('f-nationalite') } }] },
-    'Éditeur':             { rich_text: [{ text: { content: get('f-editeur') } }] },
-    'Collection':          { rich_text: [{ text: { content: get('f-collection-ed') } }] },
     'ISBN':                { rich_text: [{ text: { content: get('f-isbn') } }] },
-    'Publication originale':{ rich_text: [{ text: { content: get('f-datepub') } }] },
-    'Date édition':        { rich_text: [{ text: { content: get('f-dateed') } }] },
-    'Pages':               get('f-pages') ? { number: parseInt(get('f-pages')) || null } : undefined,
     'Thème':               get('f-theme')     ? { select: { name: get('f-theme') } }     : undefined,
     'Sous-thème':          get('f-soustheme') ? { select: { name: get('f-soustheme') } } : undefined,
     'Statut':              { select: { name: get('f-statut') || 'À lire' } },
@@ -247,6 +245,21 @@ function buildProps(get, cb, sync) {
     'Citations':           { rich_text: [{ text: { content: get('f-citations') } }] },
     'Commentaire':         { rich_text: [{ text: { content: get('f-comment') } }] },
   };
+
+  // Champs bibliographiques configurables — seuls les champs actifs sont envoyés
+  // (un champ désactivé est omis, pas vidé, pour ne pas écraser une donnée existante).
+  for (const f of getActiveBibFields()) {
+    if (f.isCover) continue;
+    const raw = get(f.id);
+    if (f.notionType === 'rich_text') {
+      props[f.notionProp] = { rich_text: [{ text: { content: raw } }] };
+    } else if (f.notionType === 'number') {
+      props[f.notionProp] = raw ? { number: parseInt(raw) || null } : undefined;
+    } else if (f.notionType === 'multi_select') {
+      props[f.notionProp] = { multi_select: raw.split(',').map(s => s.trim()).filter(Boolean).map(name => ({ name })) };
+    }
+  }
+
   for (const c of sync.conflicts) delete props[c.name];
   Object.keys(props).forEach(k => props[k] === undefined && delete props[k]);
   return props;

@@ -6,11 +6,9 @@
     "properties": {
       "Nom": { "title": [{ "plain_text": "Le Capital" }] },
       "Auteur": { "rich_text": [{ "plain_text": "Karl Marx" }] },
-      "Nationalité": { "rich_text": [{ "plain_text": "Allemand" }] },
       "Éditeur": { "rich_text": [{ "plain_text": "Éditions Sociales" }] },
       "Collection": { "rich_text": [{ "plain_text": "" }] },
       "ISBN": { "rich_text": [{ "plain_text": "9782070360024" }] },
-      "Publication originale": { "rich_text": [{ "plain_text": "1867" }] },
       "Date édition": { "rich_text": [{ "plain_text": "1969" }] },
       "Pages": { "number": 900 },
       "Thème": { "select": { "name": "Histoire" } },

@@ -27,3 +27,20 @@ export function notionHeaders(token) {
     'Notion-Version': '2022-06-28'
   };
 }
+
+// Retourne la liste des clés de champs bibliographiques activées, ou null si
+// aucune préférence n'a encore été enregistrée (laisse l'appelant décider des valeurs par défaut).
+export function getEnabledBibFields() {
+  const raw = localStorage.getItem('bib_fields');
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setEnabledBibFields(keys) {
+  localStorage.setItem('bib_fields', JSON.stringify(keys));
+}

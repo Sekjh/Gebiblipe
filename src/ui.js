@@ -2,6 +2,10 @@ import { THEMES } from './themes.js';
 import { validateIsbn } from './isbn.js';
 import { fetchBnF, fetchOpenLibrary, fetchGoogle, fetchCover } from './fetchers.js';
 import { callClaude } from './claude.js';
+import { BIB_FIELDS, getActiveBibFields } from './champs.js';
+import { getEnabledBibFields, setEnabledBibFields } from './config.js';
+
+const MERGE_KEYS = ['titre', 'auteur', ...BIB_FIELDS.map(f => f.key)];
 
 let _searchLog = [];
 export function getSearchLog() { return _searchLog; }
@@ -88,7 +92,7 @@ export function detectCollection(b) {
   const col = (b.collection || '').toLowerCase();
   const edit = (b.editeur || '').toLowerCase();
   const titre = (b.titre || '').toLowerCase();
-  const date = parseInt(b.datepub || b.dateed || '9999');
+  const date = parseInt(b.dateed || '9999');
 
   for (const kw of COLLECTION_KEYWORDS) {
     if (col.includes(kw) || titre.includes(kw)) {
@@ -112,15 +116,11 @@ export function fillForm(b) {
   document.querySelectorAll('.notion-filled').forEach(el => el.classList.remove('notion-filled'));
   setField('f-titre', b.titre);
   setField('f-auteur', b.auteur);
-  document.getElementById('f-nationalite').value = b.nationalite || '';
-  document.getElementById('f-nationalite').classList.remove('prefilled');
-  setField('f-editeur', b.editeur);
-  setField('f-collection-ed', b.collection);
   setField('f-isbn', b.isbn);
-  setField('f-dateed', b.dateed);
-  document.getElementById('f-datepub').value = '';
-  document.getElementById('f-datepub').classList.remove('prefilled');
-  setField('f-pages', b.pages);
+  for (const f of getActiveBibFields()) {
+    if (f.isCover || !document.getElementById(f.id)) continue;
+    setField(f.id, b[f.key]);
+  }
   document.getElementById('f-datelu-mois').value = '';
   document.getElementById('f-datelu-annee').value = '';
   document.getElementById('f-fiche').value = '';
@@ -145,18 +145,17 @@ export function fillForm(b) {
 
   _searchLog = b.searchLog ?? [];
 
-  const FIELD_BADGE_MAP = [
-    ['f-titre', 'titre'], ['f-auteur', 'auteur'], ['f-editeur', 'editeur'],
-    ['f-collection-ed', 'collection'], ['f-dateed', 'dateed'], ['f-pages', 'pages'],
-  ];
-  for (const [fid, key] of FIELD_BADGE_MAP) {
+  const badgeFields = [['f-titre', 'titre'], ['f-auteur', 'auteur'],
+    ...getActiveBibFields().filter(f => !f.isCover).map(f => [f.id, f.key])];
+  for (const [fid, key] of badgeFields) {
     const badge = document.getElementById(fid)?.closest('.field')?.querySelector('.lbl-src:not(.lbl-src--ia)');
     if (badge) badge.textContent = b.fieldSources?.[key] ? shortSource(b.fieldSources[key]) : 'ISBN';
   }
 
   const img = document.getElementById('cover-img');
   const coverBadge = document.getElementById('cover-src-badge');
-  if (b.couverture) {
+  const coverActive = getActiveBibFields().some(f => f.key === 'couverture');
+  if (coverActive && b.couverture) {
     img.src = b.couverture; img.style.display = 'block'; img.classList.add('prefilled');
     if (coverBadge) coverBadge.textContent = shortSource(b.fieldSources?.couverture || '');
   } else {
@@ -177,13 +176,11 @@ export function fillFormFromNotion(b) {
   // ── Champs bibliographiques ──
   setFieldNotion('f-titre', b.titre);
   setFieldNotion('f-auteur', b.auteur);
-  setFieldNotion('f-nationalite', b.nationalite);
-  setFieldNotion('f-editeur', b.editeur);
-  setFieldNotion('f-collection-ed', b.collection);
   setFieldNotion('f-isbn', b.isbn);
-  setFieldNotion('f-dateed', b.dateed);
-  setFieldNotion('f-datepub', b.datepub);
-  setFieldNotion('f-pages', b.pages);
+  for (const f of getActiveBibFields()) {
+    if (f.isCover || !document.getElementById(f.id)) continue;
+    setFieldNotion(f.id, b[f.key]);
+  }
 
   // ── Champs lecture / statut ──
   const setSelNotion = (id, val) => {
@@ -243,7 +240,8 @@ export function fillFormFromNotion(b) {
   // ── Couverture ──
   const img = document.getElementById('cover-img');
   const coverBadge = document.getElementById('cover-src-badge');
-  if (b.couverture) {
+  const coverActive = getActiveBibFields().some(f => f.key === 'couverture');
+  if (coverActive && b.couverture) {
     img.src = b.couverture;
     img.style.display = 'block';
     img.classList.remove('prefilled');
@@ -281,7 +279,9 @@ export async function lookup(isbnArg = '') {
   document.getElementById('form-section').style.display = 'none';
 
   const engine = localStorage.getItem('search_engine') || 'bnf';
-  const b = { isbn: raw, titre: '', auteur: '', editeur: '', collection: '', dateed: '', pages: '', couverture: '', source: '' };
+  const activeKeys = new Set(getActiveBibFields().map(f => f.key));
+  const b = { isbn: raw, source: '' };
+  for (const key of MERGE_KEYS) b[key] = '';
 
   const all = [fetchBnF, fetchOpenLibrary, fetchGoogle];
   const preferred = { bnf: fetchBnF, openlibrary: fetchOpenLibrary, google: fetchGoogle };
@@ -295,16 +295,18 @@ export async function lookup(isbnArg = '') {
   b.searchLog = [];
   b.fieldSources = {};
   const sources = [];
+  const criticalFields = ['titre', 'auteur', 'editeur', 'pages'].filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
 
   for (let i = 0; i < fetchers.length; i++) {
     const fetcher = fetchers[i];
-    if (['titre', 'auteur', 'editeur', 'pages'].every(f => b[f])) {
+    if (criticalFields.every(f => b[f])) {
       for (const f of fetchers.slice(i)) {
         b.searchLog.push({ source: fetcherNames.get(f), status: 'non_consulté', fields: [] });
       }
       break;
     }
-    const tmp = { isbn: raw, titre: '', auteur: '', editeur: '', collection: '', dateed: '', pages: '', couverture: '', source: '' };
+    const tmp = { isbn: raw, source: '' };
+    for (const key of MERGE_KEYS) tmp[key] = '';
     let logStatus = 'non_trouvé';
     try {
       await fetcher(raw, tmp);
@@ -314,7 +316,8 @@ export async function lookup(isbnArg = '') {
     }
     const contributed = [];
     if (tmp.source) {
-      for (const key of ['titre', 'auteur', 'editeur', 'collection', 'dateed', 'pages', 'couverture']) {
+      for (const key of MERGE_KEYS) {
+        if (key !== 'titre' && key !== 'auteur' && !activeKeys.has(key)) continue;
         if (!b[key] && tmp[key]) { b[key] = tmp[key]; b.fieldSources[key] = tmp.source; contributed.push(key); }
       }
     }
@@ -329,7 +332,7 @@ export async function lookup(isbnArg = '') {
 
   setStatus(b.titre ? '' : 'ISBN introuvable — remplis manuellement.');
 
-  if (!b.couverture) {
+  if (activeKeys.has('couverture') && !b.couverture) {
     const cover = await fetchCover(raw);
     if (cover) { b.couverture = cover; b.fieldSources.couverture = 'OL Covers'; }
   }
@@ -398,7 +401,7 @@ export function toggleSourcePopover() {
   if (!pop) return;
   if (!pop.hidden) { pop.hidden = true; return; }
 
-  const LABELS = { titre: 'Titre', auteur: 'Auteur', editeur: 'Éditeur', collection: 'Collection', dateed: 'Date éd.', pages: 'Pages', couverture: 'Couverture' };
+  const LABELS = { titre: 'Titre', auteur: 'Auteur', editeur: 'Éditeur', collection: 'Collection', dateed: 'Date éd.', pages: 'Pages', couverture: 'Couverture', categories: 'Genre', description: 'Résumé', language: 'Langue' };
   const STATUS_META = {
     importé:      { icon: '✓', cls: 'sp-ok' },
     trouvé:       { icon: '◦', cls: 'sp-found' },
@@ -417,9 +420,8 @@ export function toggleSourcePopover() {
 export async function generateFiche() {
   const titre      = document.getElementById('f-titre').value.trim();
   const auteur     = document.getElementById('f-auteur').value.trim();
-  const datepub    = document.getElementById('f-datepub').value.trim();
-  const editeur    = document.getElementById('f-editeur').value.trim();
-  const collection = document.getElementById('f-collection-ed').value.trim();
+  const editeur    = document.getElementById('f-editeur')?.value?.trim() || '';
+  const collection = document.getElementById('f-collection-ed')?.value?.trim() || '';
   if (!titre) {
     document.getElementById('fiche-ai-status').textContent = '⚠️ Renseigne d\'abord le titre.';
     return;
@@ -433,7 +435,7 @@ export async function generateFiche() {
   const sousTheme = document.getElementById('f-soustheme').value.trim();
   const themeCtx  = [theme, sousTheme].filter(Boolean).join(' › ');
 
-  const prompt = `Fiche de lecture pour "${titre}"${auteur ? ' de ' + auteur : ''}${datepub ? ' (' + datepub + ')' : ''}${editeur ? ' — éd. ' + editeur : ''}${collection ? ' (' + collection + ')' : ''}${themeCtx ? ' — ' + themeCtx : ''}.
+  const prompt = `Fiche de lecture pour "${titre}"${auteur ? ' de ' + auteur : ''}${editeur ? ' — éd. ' + editeur : ''}${collection ? ' (' + collection + ')' : ''}${themeCtx ? ' — ' + themeCtx : ''}.
 
 Réponds en exactement 3 points courts, une ligne chacun, format :
 • [propos ou intrigue centrale — une phrase]
@@ -461,18 +463,11 @@ Commence ta réponse par "#Générée automatiquement par IA" puis une ligne vid
 export async function complementFromSources(isbn) {
   const engine = localStorage.getItem('search_engine') || 'bnf';
   const get = id => document.getElementById(id)?.value?.trim() || '';
-  const current = {
-    titre:      get('f-titre'),
-    auteur:     get('f-auteur'),
-    editeur:    get('f-editeur'),
-    collection: get('f-collection-ed'),
-    dateed:     get('f-dateed'),
-    pages:      get('f-pages'),
-  };
-  const idMap = {
-    titre: 'f-titre', auteur: 'f-auteur', editeur: 'f-editeur',
-    collection: 'f-collection-ed', dateed: 'f-dateed', pages: 'f-pages',
-  };
+  const activeKeys = new Set(getActiveBibFields().map(f => f.key));
+  const idMap = { titre: 'f-titre', auteur: 'f-auteur',
+    ...Object.fromEntries(BIB_FIELDS.filter(f => !f.isCover).map(f => [f.key, f.id])) };
+  const current = Object.fromEntries(MERGE_KEYS.map(key => [key, idMap[key] ? get(idMap[key]) : '']));
+  const criticalFields = ['titre', 'auteur', 'editeur', 'pages'].filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));
   const hasCover = () => {
     const img = document.getElementById('cover-img');
     return img && img.style.display !== 'none' && !!img.src;
@@ -486,11 +481,14 @@ export async function complementFromSources(isbn) {
   let anyFilled = false;
 
   for (const fetcher of fetchers) {
-    if (['titre', 'auteur', 'editeur', 'pages'].every(f => current[f])) break;
-    const tmp = { isbn, titre: '', auteur: '', editeur: '', collection: '', dateed: '', pages: '', couverture: '', source: '' };
+    if (criticalFields.every(f => current[f])) break;
+    const tmp = { isbn, source: '' };
+    for (const key of MERGE_KEYS) tmp[key] = '';
     try { await fetcher(isbn, tmp); } catch { continue; }
     if (!tmp.source) continue;
-    for (const key of ['titre', 'auteur', 'editeur', 'collection', 'dateed', 'pages']) {
+    for (const key of MERGE_KEYS) {
+      if (key !== 'titre' && key !== 'auteur' && !activeKeys.has(key)) continue;
+      if (!idMap[key]) continue;
       if (!current[key] && tmp[key]) {
         setField(idMap[key], tmp[key]);
         current[key] = tmp[key];
@@ -499,7 +497,7 @@ export async function complementFromSources(isbn) {
     }
   }
 
-  if (!hasCover()) {
+  if (activeKeys.has('couverture') && !hasCover()) {
     const cover = await fetchCover(isbn);
     if (cover) {
       const img = document.getElementById('cover-img');
@@ -513,4 +511,61 @@ export async function complementFromSources(isbn) {
   }
 
   return anyFilled;
+}
+
+// Construit la grille des champs bibliographiques configurables (hors Titre/Auteur/ISBN,
+// toujours statiques, et hors Couverture, gérée par le bloc image dédié).
+export function renderBibFieldsCard() {
+  const container = document.getElementById('bib-fields-dynamic');
+  if (!container) return;
+  const fields = getActiveBibFields().filter(f => !f.isCover);
+
+  container.innerHTML = fields.map(f => {
+    const isTextarea = f.key === 'description';
+    const fullClass = isTextarea ? ' full' : '';
+    const placeholder = f.key === 'categories' ? ' placeholder="ex. Roman, Philosophie"' : f.key === 'dateed' ? ' placeholder="ex. 2025"' : '';
+    const control = isTextarea
+      ? `<textarea id="${f.id}" rows="3"></textarea>`
+      : `<input type="text" id="${f.id}"${placeholder}>`;
+    return `<div class="field${fullClass}"><label for="${f.id}">${f.label} <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label>${control}</div>`;
+  }).join('');
+
+  for (const f of fields) {
+    document.getElementById(f.id)?.addEventListener('input', function() {
+      this.classList.remove('prefilled', 'notion-filled');
+    });
+  }
+}
+
+// Peuple les cases à cocher du panneau « Champs bibliographiques » depuis la config active.
+export function renderBibFieldsChecklist() {
+  const container = document.getElementById('bib-fields-checklist');
+  if (!container) return;
+  const enabled = new Set(getEnabledBibFields() ?? BIB_FIELDS.filter(f => f.defaultOn).map(f => f.key));
+  container.innerHTML = BIB_FIELDS.map(f => `<div class="field checkbox-row"><input type="checkbox" id="bibcfg-${f.key}"${enabled.has(f.key) ? ' checked' : ''}><label for="bibcfg-${f.key}">${f.label}</label></div>`).join('');
+}
+
+// Lit les cases cochées, enregistre la config et reconstruit immédiatement la fiche bibliographique.
+export function saveBibFieldsConfig() {
+  const keys = BIB_FIELDS.filter(f => document.getElementById(`bibcfg-${f.key}`)?.checked).map(f => f.key);
+  setEnabledBibFields(keys);
+  renderBibFieldsCard();
+  const status = document.getElementById('bib-fields-status');
+  if (status) {
+    status.textContent = '✅ Champs mis à jour.';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  }
+}
+
+export function toggleBibFieldsPanel() {
+  const p = document.getElementById('bib-config-panel');
+  if (!p) return;
+  const visible = p.style.display !== 'none';
+  p.style.display = visible ? 'none' : 'block';
+  p.setAttribute('aria-hidden', visible ? 'true' : 'false');
+  if (!visible) {
+    renderBibFieldsChecklist();
+    const status = document.getElementById('bib-fields-status');
+    if (status) status.textContent = '';
+  }
 }

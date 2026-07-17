@@ -42,14 +42,9 @@
       <div class="grid2">
         <div class="field full"><label for="f-titre">Titre <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-titre"></div>
         <div class="field full"><label for="f-auteur">Auteur(s) <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-auteur"></div>
-        <div class="field"><label for="f-nationalite">Nationalité de l'auteur <span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-nationalite" placeholder="ex. Français, Allemand…"></div>
-        <div class="field"><label for="f-editeur">Éditeur <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-editeur"></div>
-        <div class="field"><label for="f-collection-ed">Collection <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-collection-ed"></div>
-        <div class="field"><label for="f-datepub">Publication originale <span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-datepub" placeholder="ex. 1739"></div>
-        <div class="field"><label for="f-dateed">Date de cette édition <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-dateed" placeholder="ex. 2025"></div>
-        <div class="field"><label for="f-pages">Nombre de pages <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label><input type="text" id="f-pages"></div>
         <div class="field"><label for="f-isbn">ISBN</label><input type="text" id="f-isbn" readonly style="opacity:0.5"></div>
       </div>
+      <div class="grid2" id="bib-fields-dynamic"></div>
     </div>
 
     <div class="card">
@@ -195,6 +190,19 @@
   </div>
 </div>
 
+<!-- Champs bibliographiques -->
+<div id="bib-config-panel" style="display:none;max-width:600px;margin:0 auto 1rem;padding:0 1rem;" aria-hidden="true">
+  <div class="card">
+    <p class="section-title">Champs bibliographiques</p>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.6;">
+      Choisis les champs à afficher dans la fiche « Données bibliographiques ». Titre, Auteur(s) et ISBN sont toujours présents.
+    </p>
+    <div id="bib-fields-checklist"></div>
+    <button id="btn-save-bib-fields" style="margin-top:6px;">Enregistrer</button>
+    <p id="bib-fields-status" class="status" style="text-align:center;margin-top:6px;" aria-live="polite" aria-atomic="true"></p>
+  </div>
+</div>
+
 <!-- Devlog -->
 <div style="text-align:center;padding:1.5rem 0 2rem;display:flex;justify-content:center;gap:1.5rem;">
   <button id="btn-toggle-devlog" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;width:auto;height:auto;padding:4px 8px;text-decoration:underline;text-underline-offset:3px;">
@@ -202,6 +210,9 @@
   </button>
   <button id="btn-toggle-config" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;width:auto;height:auto;padding:4px 8px;text-decoration:underline;text-underline-offset:3px;">
     ⚙ configuration
+  </button>
+  <button id="btn-toggle-bib-fields" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;width:auto;height:auto;padding:4px 8px;text-decoration:underline;text-underline-offset:3px;">
+    champs bibliographiques
   </button>
   <button id="btn-toggle-doc" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;width:auto;height:auto;padding:4px 8px;text-decoration:underline;text-underline-offset:3px;">
     [doc]
@@ -259,11 +270,13 @@
       <li>Recherche par ISBN — validation checksum, conversion ISBN-13/10</li>
       <li>Sources bibliographiques multi-moteurs : BnF (recommandée), OpenLibrary, Google Books</li>
       <li>Enrichissement automatique avec fallback (champs critiques : titre, auteur, éditeur, pages)</li>
+      <li>Champs bibliographiques configurables (Éditeur, Collection, Date édition, Pages, Couverture, Genre, Résumé, Langue) via un panneau dédié — Titre, Auteur et ISBN toujours présents</li>
+      <li>Genre, Résumé et Langue extraits automatiquement via Google Books (Genre en propriété Notion multi_select)</li>
       <li>Gestion de couverture via OpenLibrary Covers — badge de source</li>
       <li>Suggestions de thème et sous-thème via IA (Claude Haiku)</li>
       <li>Génération de fiche de lecture via IA (Claude Sonnet)</li>
       <li>Intégration Notion : pré-vérification ISBN, création et mise à jour de page</li>
-      <li>Synchronisation automatique du schéma Notion (propriétés manquantes créées)</li>
+      <li>Synchronisation automatique du schéma Notion (propriétés manquantes créées selon les champs bibliographiques actifs)</li>
       <li>Badges de source par champ (ISBN, Notion, IA) + journal de recherche en popover</li>
       <li>Détection automatique des éditions spéciales et collections</li>
       <li>Support iOS Shortcuts via paramètre URL <code>?isbn=XXXXX</code></li>

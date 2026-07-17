@@ -31,15 +31,10 @@ describe('detectCollection', () => {
     expect(r.detected).toBe(true);
   });
 
-  test('détecte Gallimard avec date < 1900 (via datepub)', () => {
-    const r = detectCollection({ collection: '', editeur: 'Gallimard', datepub: '1890' });
+  test('détecte Gallimard avec date < 1900 (via dateed)', () => {
+    const r = detectCollection({ collection: '', editeur: 'Gallimard', dateed: '1890' });
     expect(r.detected).toBe(true);
     expect(r.reason).toContain('1890');
-  });
-
-  test('détecte Gallimard avec date < 1900 (via dateed quand datepub absent)', () => {
-    const r = detectCollection({ collection: '', editeur: 'Gallimard', dateed: '1885' });
-    expect(r.detected).toBe(true);
   });
 
   test('ne détecte PAS Gallimard post-1900', () => {
@@ -203,12 +198,10 @@ const FULL_DOM = `
   <div id="form-section" style="display:none">
     <div class="field"><label>Titre</label><input id="f-titre" /></div>
     <div class="field"><label>Auteur</label><input id="f-auteur" /></div>
-    <div class="field"><label>Nationalité</label><input id="f-nationalite" /></div>
     <div class="field"><label>Éditeur</label><input id="f-editeur" /></div>
     <div class="field"><label>Collection</label><input id="f-collection-ed" /></div>
     <div class="field"><label>ISBN</label><input id="f-isbn" /></div>
     <div class="field"><label>Date éd.</label><input id="f-dateed" /></div>
-    <div class="field"><label>Publication</label><input id="f-datepub" /></div>
     <div class="field"><label>Pages</label><input id="f-pages" /></div>
     <div class="field"><label>Thème</label>
       <select id="f-theme">
@@ -261,11 +254,9 @@ const NOTION_BOOK = {
   isbn: '9782070360024',
   titre: 'Le Capital',
   auteur: 'Karl Marx',
-  nationalite: 'Allemand',
   editeur: 'Éditions Sociales',
   collection: '',
   dateed: '1969',
-  datepub: '1867',
   pages: '900',
   theme: 'Histoire',
   soustheme: '',

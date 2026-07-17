@@ -6,6 +6,17 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+- Panneau dédié "champs bibliographiques" pour choisir les champs affichés dans la fiche (Éditeur, Collection, Date édition, Pages, Couverture, Genre, Résumé, Langue) — préférence enregistrée localement, appliquée immédiatement sans rechargement
+- Nouveaux champs extraits automatiquement via Google Books : Genre (`multi_select` Notion), Résumé, Langue
+- L'enregistrement Notion crée automatiquement les colonnes correspondant aux champs bibliographiques actuellement activés (schéma dynamique)
+
+### Changed
+- Le bâtisseur de propriétés Notion (`buildProps`) n'envoie que les champs bibliographiques actifs — un champ décoché est omis de l'envoi plutôt que vidé, pour ne pas écraser une donnée déjà présente dans Notion
+
+### Removed
+- Champs personnalisés "Nationalité de l'auteur" et "Publication originale" (jamais alimentés par une recherche ISBN, remplacés par le mécanisme de champs configurables)
+
 ---
 
 ## [0.55.0] — 2026-07-17

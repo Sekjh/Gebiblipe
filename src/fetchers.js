@@ -54,6 +54,7 @@ export async function fetchGoogle(raw, b) {
   const v=g.items[0].volumeInfo;
   b.titre=v.title||''; b.auteur=v.authors?.join(', ')||''; b.editeur=v.publisher||'';
   b.dateed=v.publishedDate||''; b.pages=v.pageCount||'';
+  b.categories=v.categories?.join(', ')||''; b.description=v.description||''; b.language=v.language||'';
   if(v.imageLinks?.thumbnail) b.couverture=v.imageLinks.thumbnail.replace('http:','https:');
   if(b.titre) b.source='Google Books';
 }

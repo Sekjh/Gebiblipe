@@ -20,11 +20,9 @@ const DBID  = 'abcdef1234567890abcdef1234567890';
 const FORM_DOM = `
   <input id="f-titre" value="Le Capital" />
   <input id="f-auteur" value="Karl Marx" />
-  <input id="f-nationalite" value="Allemand" />
   <input id="f-editeur" value="Éditions Sociales" />
   <input id="f-collection-ed" value="" />
   <input id="f-isbn" value="9782070360024" />
-  <input id="f-datepub" value="1867" />
   <input id="f-dateed" value="1969" />
   <input id="f-pages" value="900" />
   <select id="f-theme"><option value="Histoire" selected>Histoire</option></select>

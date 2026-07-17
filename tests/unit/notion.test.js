@@ -147,11 +147,9 @@ describe('syncDatabaseProps', () => {
 const DOM_FORM = `
   <input id="f-titre" value="Le Capital" />
   <input id="f-auteur" value="Karl Marx" />
-  <input id="f-nationalite" value="Allemand" />
   <input id="f-editeur" value="Éditions Sociales" />
   <input id="f-collection-ed" value="" />
   <input id="f-isbn" value="9782070360024" />
-  <input id="f-datepub" value="1867" />
   <input id="f-dateed" value="1969" />
   <input id="f-pages" value="900" />
   <select id="f-theme"><option value="Histoire" selected>Histoire</option></select>
@@ -175,6 +173,7 @@ const DOM_FORM = `
 describe('doSend', () => {
   beforeEach(() => {
     document.body.innerHTML = DOM_FORM;
+    localStorage.removeItem('bib_fields');
   });
 
   test('envoie le bon payload shape à Notion', async () => {
@@ -210,6 +209,32 @@ describe('doSend', () => {
     await doSend(CFG, { created: [], conflicts: [] });
     const body = JSON.parse(fetch.mock.calls[0][1].body);
     expect(body.properties['Priorité']).toBeUndefined();
+  });
+
+  test("n'envoie ni 'Nationalité' ni 'Publication originale' (champs personnalisés supprimés)", async () => {
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await doSend(CFG, { created: [], conflicts: [] });
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.properties['Nationalité']).toBeUndefined();
+    expect(body.properties['Publication originale']).toBeUndefined();
+  });
+
+  test("omet un champ bibliographique désactivé (ex. Éditeur) au lieu de l'envoyer vide", async () => {
+    localStorage.setItem('bib_fields', JSON.stringify(['pages']));
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await doSend(CFG, { created: [], conflicts: [] });
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.properties['Éditeur']).toBeUndefined();
+    expect(body.properties['Pages'].number).toBe(900);
+  });
+
+  test("envoie 'Genre' en multi_select à partir d'une liste séparée par des virgules", async () => {
+    localStorage.setItem('bib_fields', JSON.stringify(['categories']));
+    document.body.insertAdjacentHTML('beforeend', '<input id="f-genre" value="Roman, Philosophie" />');
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await doSend(CFG, { created: [], conflicts: [] });
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.properties['Genre'].multi_select).toEqual([{ name: 'Roman' }, { name: 'Philosophie' }]);
   });
 
   test("coche 'Collection (livre)' quand la case est cochée", async () => {

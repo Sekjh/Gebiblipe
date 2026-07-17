@@ -1,4 +1,4 @@
-import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources } from './ui.js';
+import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources, renderBibFieldsCard, toggleBibFieldsPanel, saveBibFieldsConfig } from './ui.js';
 import { sendToNotion, saveConfig, toggleConfig, lookupFromNotion, setCurrentPageId, clearCurrentPageId, getCurrentPageId, updateConfigWarning } from './notion.js';
 import { validateIsbn } from './isbn.js';
 import { getConfig } from './config.js';
@@ -14,6 +14,7 @@ for (let y = now; y >= 1980; y--) {
 
 initThemes();
 updateConfigWarning();
+renderBibFieldsCard();
 
 // ── Pré-vérification Notion puis recherche ─────────────────────────────────
 async function startSearch(isbn) {
@@ -160,12 +161,14 @@ document.getElementById('form-section').addEventListener('keydown', e => {
 });
 
 // Retrait des badges quand l'utilisateur modifie un champ auto-rempli
-for (const id of ['f-titre', 'f-auteur', 'f-editeur', 'f-collection-ed', 'f-dateed', 'f-pages']) {
+// (les champs bibliographiques configurables ont leur propre listener, attaché
+// dynamiquement par renderBibFieldsCard() dans ui.js à chaque (re)génération de la grille)
+for (const id of ['f-titre', 'f-auteur']) {
   document.getElementById(id).addEventListener('input', function() {
     this.classList.remove('prefilled', 'notion-filled');
   });
 }
-for (const id of ['f-nationalite', 'f-datepub', 'f-citations', 'f-comment']) {
+for (const id of ['f-citations', 'f-comment']) {
   document.getElementById(id).addEventListener('input', function() { this.classList.remove('notion-filled'); });
 }
 for (const id of ['f-priorite', 'f-note', 'f-etat', 'f-datelu-mois', 'f-datelu-annee']) {
@@ -225,33 +228,34 @@ document.addEventListener('click', e => {
     document.getElementById('source-popover').hidden = true;
 });
 
-// Barre de navigation bas de page
+// Barre de navigation bas de page — un seul panneau visible à la fois
+function hideOtherPanels(exceptId) {
+  for (const id of ['doc-panel', 'devlog', 'config-panel', 'bib-config-panel']) {
+    if (id === exceptId) continue;
+    const el = document.getElementById(id);
+    el.style.display = 'none';
+    el.setAttribute('aria-hidden', 'true');
+  }
+}
+
 document.getElementById('btn-toggle-devlog').addEventListener('click', () => {
-  const docPanel = document.getElementById('doc-panel');
-  const configPanel = document.getElementById('config-panel');
-  docPanel.style.display = 'none';
-  docPanel.setAttribute('aria-hidden', 'true');
-  configPanel.style.display = 'none';
-  configPanel.setAttribute('aria-hidden', 'true');
+  hideOtherPanels('devlog');
   toggleDevlog();
 });
 document.getElementById('btn-toggle-config').addEventListener('click', () => {
-  const docPanel = document.getElementById('doc-panel');
-  docPanel.style.display = 'none';
-  docPanel.setAttribute('aria-hidden', 'true');
+  hideOtherPanels('config-panel');
   toggleConfig();
+});
+document.getElementById('btn-toggle-bib-fields').addEventListener('click', () => {
+  hideOtherPanels('bib-config-panel');
+  toggleBibFieldsPanel();
 });
 document.getElementById('btn-close-devlog').addEventListener('click', toggleDevlog);
 
 function toggleDoc() {
   const panel = document.getElementById('doc-panel');
   const isVisible = panel.style.display !== 'none';
-  const devlog = document.getElementById('devlog');
-  const config = document.getElementById('config-panel');
-  devlog.style.display = 'none';
-  devlog.setAttribute('aria-hidden', 'true');
-  config.style.display = 'none';
-  config.setAttribute('aria-hidden', 'true');
+  hideOtherPanels('doc-panel');
   panel.style.display = isVisible ? 'none' : 'block';
   panel.setAttribute('aria-hidden', isVisible ? 'true' : 'false');
 }
@@ -260,6 +264,9 @@ document.getElementById('btn-close-doc').addEventListener('click', toggleDoc);
 
 // Config panel
 document.getElementById('btn-save-config').addEventListener('click', saveConfig);
+
+// Champs bibliographiques
+document.getElementById('btn-save-bib-fields').addEventListener('click', saveBibFieldsConfig);
 
 // iOS Shortcuts — auto-lookup si ?isbn= dans l'URL
 const params = new URLSearchParams(window.location.search);

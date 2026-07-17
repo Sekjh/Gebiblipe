@@ -23,11 +23,9 @@ const FORM_DOM = `
     <img id="cover-img" src="" style="display:none" />
     <input id="f-titre" />
     <input id="f-auteur" />
-    <input id="f-nationalite" />
     <input id="f-editeur" />
     <input id="f-collection-ed" />
     <input id="f-isbn" />
-    <input id="f-datepub" />
     <input id="f-dateed" />
     <input id="f-pages" />
     <select id="f-theme"><option value="">— Thème —</option></select>

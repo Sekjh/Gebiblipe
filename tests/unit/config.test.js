@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { localStorageStub } from '../helpers/localStorage.js';
-import { getConfig, notionUrl, notionHeaders, getMissingConfigKeys } from '../../src/config.js';
+import { getConfig, notionUrl, notionHeaders, getMissingConfigKeys, getEnabledBibFields, setEnabledBibFields } from '../../src/config.js';
 
 beforeEach(() => {
   localStorageStub.clear();
@@ -69,5 +69,26 @@ describe('notionHeaders', () => {
     expect(h['Authorization']).toBe('Bearer ntn_mytoken');
     expect(h['Content-Type']).toBe('application/json');
     expect(h['Notion-Version']).toBe('2022-06-28');
+  });
+});
+
+describe('getEnabledBibFields / setEnabledBibFields', () => {
+  test('retourne null quand aucune préférence n\'est enregistrée', () => {
+    expect(getEnabledBibFields()).toBeNull();
+  });
+
+  test('retourne le tableau enregistré par setEnabledBibFields', () => {
+    setEnabledBibFields(['editeur', 'pages']);
+    expect(getEnabledBibFields()).toEqual(['editeur', 'pages']);
+  });
+
+  test('retourne null quand la valeur stockée est un JSON invalide', () => {
+    localStorage.setItem('bib_fields', 'pas-du-json');
+    expect(getEnabledBibFields()).toBeNull();
+  });
+
+  test('retourne null quand la valeur stockée est un JSON valide mais pas un tableau', () => {
+    localStorage.setItem('bib_fields', JSON.stringify({ editeur: true }));
+    expect(getEnabledBibFields()).toBeNull();
   });
 });
