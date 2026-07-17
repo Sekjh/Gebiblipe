@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.59.1] — 2026-07-17
+
 ### Changed
 - Règle de champs obligatoires avant l'envoi Notion revue : l'ISBN devient obligatoire en mode recherche (Titre/Auteur redeviennent optionnels), et seul le Titre est obligatoire en mode « Nouveau sans ISBN » — l'import en masse ne vérifie plus que la validité de l'ISBN (déjà garantie par le parsing de la liste collée)
 
@@ -257,7 +261,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.0...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.1...HEAD
+[0.59.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.0...v0.59.1
 [0.59.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.58.0...v0.59.0
 [0.58.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.57.0...v0.58.0
 [0.57.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.56.1...v0.57.0
