@@ -35,8 +35,8 @@ describe('THEMES', () => {
 describe('getExpectedProps', () => {
   const ALLOWED_TYPES = ['rich_text', 'number', 'select', 'checkbox', 'multi_select'];
 
-  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 23 propriétés (19 + 4 identifiants pivots toujours inclus)', () => {
-    expect(Object.keys(getExpectedProps()).length).toBe(23);
+  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 24 propriétés (19 + 5 identifiants pivots toujours inclus)', () => {
+    expect(Object.keys(getExpectedProps()).length).toBe(24);
   });
 
   test("'Version GEBIBLIPE' est de type 'rich_text' et toujours présente", () => {

@@ -55,8 +55,8 @@ describe('BIB_FIELDS', () => {
 });
 
 describe('PIVOT_IDENTIFIER_KEYS', () => {
-  test('liste les 4 identifiants pivots attendus', () => {
-    expect(PIVOT_IDENTIFIER_KEYS.sort()).toEqual(['ark', 'googleVolumeId', 'oclc', 'olid'].sort());
+  test('liste les 5 identifiants pivots attendus', () => {
+    expect(PIVOT_IDENTIFIER_KEYS.sort()).toEqual(['ark', 'googleVolumeId', 'oclc', 'olid', 'ppn'].sort());
   });
 });
 

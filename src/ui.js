@@ -1,11 +1,25 @@
 import { THEMES } from './themes.js';
 import { validateIsbn } from './isbn.js';
-import { fetchBnF, fetchOpenLibrary, fetchGoogle, fetchCover } from './fetchers.js';
+import { fetchBnF, fetchOpenLibrary, fetchGoogle, fetchSudoc, fetchCover } from './fetchers.js';
 import { callClaude } from './claude.js';
 import { MANDATORY_FIELDS, BIB_FIELDS, PIVOT_FIELDS, getActiveBibFields } from './champs.js';
 import { getEnabledBibFields, setEnabledBibFields } from './config.js';
 
 const MERGE_KEYS = ['titre', 'auteur', ...BIB_FIELDS.map(f => f.key)];
+
+// Registre unique des sources bibliographiques — pilote l'ordre de préférence dans
+// lookup() et complementFromSources() (le moteur préféré passe en tête, les autres
+// suivent dans cet ordre fixe).
+const FETCHER_REGISTRY = [
+  { engine: 'bnf',         fn: fetchBnF,         name: 'BnF' },
+  { engine: 'openlibrary', fn: fetchOpenLibrary, name: 'OpenLibrary' },
+  { engine: 'google',      fn: fetchGoogle,      name: 'Google Books' },
+  { engine: 'sudoc',       fn: fetchSudoc,       name: 'SUDOC' },
+];
+function orderedFetchers(engine) {
+  const first = FETCHER_REGISTRY.find(f => f.engine === engine) || FETCHER_REGISTRY[0];
+  return [first, ...FETCHER_REGISTRY.filter(f => f !== first)];
+}
 
 let _searchLog = [];
 export function getSearchLog() { return _searchLog; }
@@ -18,6 +32,7 @@ export function getLastIsbn() { return _lastIsbn; }
 
 function shortSource(s = '') {
   return s.replace('BnF ISBN-', 'BnF ').replace('OpenLibrary ISBN-', 'OL ')
+          .replace('SUDOC ISBN-', 'SUDOC ')
           .replace('OpenLibrary', 'OL').replace('Google Books', 'Google').replace('OL Covers', 'OL');
 }
 
@@ -288,15 +303,8 @@ export async function lookup(isbnArg = '') {
   const b = { isbn: raw, source: '' };
   for (const key of MERGE_KEYS) b[key] = '';
 
-  const all = [fetchBnF, fetchOpenLibrary, fetchGoogle];
-  const preferred = { bnf: fetchBnF, openlibrary: fetchOpenLibrary, google: fetchGoogle };
-  const first = preferred[engine] || fetchBnF;
-  const rest = all.filter(f => f !== first);
-  const fetchers = [first, ...rest];
-
-  const fetcherNames = new Map([
-    [fetchBnF, 'BnF'], [fetchOpenLibrary, 'OpenLibrary'], [fetchGoogle, 'Google Books'],
-  ]);
+  const fetchers = orderedFetchers(engine).map(f => f.fn);
+  const fetcherNames = new Map(FETCHER_REGISTRY.map(f => [f.fn, f.name]));
   b.searchLog = [];
   b.fieldSources = {};
   const sources = [];
@@ -489,10 +497,7 @@ export async function complementFromSources(isbn) {
     return img && img.style.display !== 'none' && !!img.src;
   };
 
-  const all = [fetchBnF, fetchOpenLibrary, fetchGoogle];
-  const preferred = { bnf: fetchBnF, openlibrary: fetchOpenLibrary, google: fetchGoogle };
-  const first = preferred[engine] || fetchBnF;
-  const fetchers = [first, ...all.filter(f => f !== first)];
+  const fetchers = orderedFetchers(engine).map(f => f.fn);
 
   let anyFilled = false;
 

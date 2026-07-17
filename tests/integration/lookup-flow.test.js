@@ -9,6 +9,7 @@ const fixturesDir = join(__dirname, '../fixtures');
 
 const bnfFound  = readFileSync(join(fixturesDir, 'bnf-found.xml'),  'utf8');
 const bnfEmpty  = readFileSync(join(fixturesDir, 'bnf-empty.xml'),  'utf8');
+const sudocFound = readFileSync(join(fixturesDir, 'sudoc-found.xml'), 'utf8');
 const olData    = JSON.parse(readFileSync(join(fixturesDir, 'openlibrary-response.json'), 'utf8'));
 const googleData = JSON.parse(readFileSync(join(fixturesDir, 'google-response.json'), 'utf8'));
 
@@ -95,6 +96,24 @@ describe('Fallback BnF → OL → Google', () => {
       .mockResolvedValue({ ok: false, headers: { get: () => '0' } });     // fetchCover HEAD
     await lookup('9782070360024');
     expect(document.getElementById('source-badge').textContent).toContain('Google Books');
+  });
+});
+
+// ─── Fallback complet → SUDOC ────────────────────────────────────────────────
+
+describe('Fallback BnF → OL → Google → SUDOC', () => {
+  test('utilise SUDOC quand les 3 autres sources ne trouvent rien', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfEmpty })    // BnF ISBN-13
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfEmpty })    // BnF ISBN-10
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })        // OL ISBN-13 vide
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })        // OL ISBN-10 vide
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ items: [] }) }) // Google vide
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocFound })  // SUDOC ISBN-13
+      .mockResolvedValue({ ok: false, headers: { get: () => '0' } });     // fetchCover HEAD
+    await lookup('9782070360024');
+    expect(document.getElementById('source-badge').textContent).toContain('SUDOC');
+    expect(document.getElementById('f-titre').value).toBe("L'étranger");
   });
 });
 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<srw:searchRetrieveResponse xmlns:srw="http://www.loc.gov/zing/srw/">
+  <srw:numberOfRecords>1</srw:numberOfRecords>
+  <srw:records>
+    <srw:record>
+      <srw:recordData>
+        <record>
+          <controlfield tag="001">172258367</controlfield>
+          <controlfield tag="003">http://www.sudoc.fr/172258367</controlfield>
+          <datafield tag="200">
+            <subfield code="a">L'étranger</subfield>
+            <subfield code="f">Albert Camus</subfield>
+          </datafield>
+          <datafield tag="700">
+            <subfield code="a">Camus</subfield>
+            <subfield code="b">Albert</subfield>
+          </datafield>
+          <datafield tag="214">
+            <subfield code="c">Gallimard</subfield>
+            <subfield code="d">DL 1996</subfield>
+          </datafield>
+          <datafield tag="225">
+            <subfield code="a">Collection Folio</subfield>
+          </datafield>
+          <datafield tag="215">
+            <subfield code="a">1 vol. (185 p.)</subfield>
+          </datafield>
+          <datafield tag="101">
+            <subfield code="a">fre</subfield>
+          </datafield>
+        </record>
+      </srw:recordData>
+    </srw:record>
+  </srw:records>
+</srw:searchRetrieveResponse>

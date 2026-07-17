@@ -33,6 +33,7 @@ export const PIVOT_FIELDS = [
   { key: 'olid',           label: 'OLID (OpenLibrary)', notionProp: 'OLID',              notionType: 'rich_text' },
   { key: 'googleVolumeId', label: 'Google Volume ID',   notionProp: 'Google Volume ID', notionType: 'rich_text' },
   { key: 'oclc',           label: 'OCLC',               notionProp: 'OCLC',              notionType: 'rich_text' },
+  { key: 'ppn',            label: 'PPN (SUDOC)',        notionProp: 'PPN SUDOC',        notionType: 'rich_text' },
 ];
 export const PIVOT_IDENTIFIER_KEYS = PIVOT_FIELDS.map(f => f.key);
 

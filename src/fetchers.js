@@ -74,6 +74,33 @@ export async function fetchOpenLibrary(raw, b) {
   }
 }
 
+export async function fetchSudoc(raw, b) {
+  const isbns = [raw];
+  const isbn10 = isbn13to10(raw);
+  if (isbn10) isbns.push(isbn10);
+
+  for (const isbn of isbns) {
+    try {
+      const query = encodeURIComponent(`isb=${isbn}`);
+      const xml = await fetchWithTimeout(`https://www.sudoc.abes.fr/cbs/sru?version=1.1&operation=searchRetrieve&query=${query}&recordSchema=unimarc&maximumRecords=1`).then(r=>r.text());
+      const doc = new DOMParser().parseFromString(xml,'text/xml');
+      const rec = doc.querySelector('record');
+      if (!rec) continue;
+      const gf = (tag,sub) => { const el=rec.querySelector(`datafield[tag="${tag}"] subfield[code="${sub}"]`); return el?el.textContent.trim():''; };
+      const gfa = (tag,sub) => Array.from(rec.querySelectorAll(`datafield[tag="${tag}"] subfield[code="${sub}"]`)).map(e=>e.textContent.trim());
+      b.titre = gf('200','a');
+      const na=gfa('700','a'),nb=gfa('700','b'); b.auteur=na.map((a,i)=>nb[i]?nb[i]+' '+a:a).join(', ');
+      if(!b.auteur){const na2=gfa('701','a'),nb2=gfa('701','b');b.auteur=na2.map((a,i)=>nb2[i]?nb2[i]+' '+a:a).join(', ');}
+      b.editeur=gf('210','c')||gf('214','c'); b.dateed=gf('210','d')||gf('214','d');
+      b.collection=gf('225','a'); b.pages=gf('215','a');
+      const lang = gf('101','a'); if (lang) b.language = normalizeLanguage(lang);
+      const ppn = rec.querySelector('controlfield[tag="001"]')?.textContent?.trim();
+      if (ppn) { b.sourceIds = b.sourceIds || {}; b.sourceIds.ppn = ppn; }
+      if(b.titre) { b.source = (isbn === raw) ? 'SUDOC ISBN-13' : 'SUDOC ISBN-10'; return; }
+    } catch { /* swallow: erreur réseau ou timeout */ }
+  }
+}
+
 export async function fetchGoogle(raw, b) {
   const g=await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(raw)}`).then(r=>r.json());
   if(!g.items?.length) return;

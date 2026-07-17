@@ -9,10 +9,12 @@ const fixturesDir = join(__dirname, '../fixtures');
 
 const bnfFound  = readFileSync(join(fixturesDir, 'bnf-found.xml'),  'utf8');
 const bnfEmpty  = readFileSync(join(fixturesDir, 'bnf-empty.xml'),  'utf8');
+const sudocFound = readFileSync(join(fixturesDir, 'sudoc-found.xml'), 'utf8');
+const sudocEmpty = readFileSync(join(fixturesDir, 'sudoc-empty.xml'), 'utf8');
 const olData    = JSON.parse(readFileSync(join(fixturesDir, 'openlibrary-response.json'), 'utf8'));
 const googleData = JSON.parse(readFileSync(join(fixturesDir, 'google-response.json'), 'utf8'));
 
-import { fetchWithTimeout, fetchBnF, fetchOpenLibrary, fetchGoogle, fetchCover } from '../../src/fetchers.js';
+import { fetchWithTimeout, fetchBnF, fetchOpenLibrary, fetchGoogle, fetchSudoc, fetchCover } from '../../src/fetchers.js';
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn());
@@ -81,6 +83,49 @@ describe('fetchBnF', () => {
     fetch.mockRejectedValueOnce(new Error('DNS failure'));
     const b = { isbn: '9782070360024' };
     await expect(fetchBnF('9782070360024', b)).resolves.toBeUndefined();
+    expect(b.source).toBeUndefined();
+  });
+});
+
+// ─── fetchSudoc ──────────────────────────────────────────────────────────────
+
+describe('fetchSudoc', () => {
+  test('remplit b depuis XML SUDOC valide', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, text: async () => sudocFound });
+    const b = { isbn: '9782070360024' };
+    await fetchSudoc('9782070360024', b);
+    expect(b.source).toBe('SUDOC ISBN-13');
+    expect(b.titre).toBe("L'étranger");
+    expect(b.auteur).toBe('Albert Camus');
+    expect(b.editeur).toBe('Gallimard');
+    expect(b.dateed).toBe('DL 1996');
+    expect(b.collection).toBe('Collection Folio');
+    expect(b.pages).toBe('1 vol. (185 p.)');
+    expect(b.language).toBe('fr');
+    expect(b.sourceIds.ppn).toBe('172258367');
+  });
+
+  test('ne positionne pas b.source quand pas de <record>', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, text: async () => sudocEmpty });
+    const b = { isbn: '9999999999999' };
+    await fetchSudoc('9999999999999', b);
+    expect(b.source).toBeUndefined();
+  });
+
+  test('effectue 2 appels quand ISBN-13 échoue et ISBN-10 réussit', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocEmpty })
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocFound });
+    const b = { isbn: '9782070360024' };
+    await fetchSudoc('9782070360024', b);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(b.source).toBe('SUDOC ISBN-10');
+  });
+
+  test('ne lève pas d\'exception en cas d\'erreur réseau', async () => {
+    fetch.mockRejectedValueOnce(new Error('DNS failure'));
+    const b = { isbn: '9782070360024' };
+    await expect(fetchSudoc('9782070360024', b)).resolves.toBeUndefined();
     expect(b.source).toBeUndefined();
   });
 });
