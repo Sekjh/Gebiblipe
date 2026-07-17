@@ -9,7 +9,7 @@
 <body>
 
 <div class="container">
-  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.58.0 — 2026-07-17</span></h1>
+  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.59.0 — 2026-07-17</span></h1>
 
   <div class="card">
     <div class="input-row">
@@ -263,6 +263,17 @@
     </div>
         <div style="font-size:12px;line-height:1.8;">
       <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+        <span style="font-weight:600;color:var(--text);">v0.59.0</span>
+        <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
+        <div style="margin-top:8px;">
+          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Import en masse</div>
+          <div style="color:var(--muted);">• Import en masse d'ISBN via un champ de texte libre (un par ligne) : vérification Notion, complétion des champs vides via les 4 sources, rafraîchissement des identifiants techniques et de la version GEBIBLIPE</div>
+          <div style="color:var(--muted);">• Tableau récapitulatif (statut, champs modifiés) avec case à exclure par ligne, avant envoi groupé vers Notion</div>
+          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Corrections</div>
+          <div style="color:var(--muted);">• Le champ Format n'était jamais relu depuis Notion, ce qui pouvait effacer silencieusement sa valeur au renvoi</div>
+        </div>
+      </div>
+      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
         <span style="font-weight:600;color:var(--text);">v0.58.0</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
         <div style="margin-top:8px;">
@@ -276,7 +287,7 @@
           <div style="color:var(--muted);">• Titre et Auteur désormais obligatoires avant l'envoi vers Notion</div>
         </div>
       </div>
-      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+      <div style="padding:0.75rem 1rem;">
         <span style="font-weight:600;color:var(--text);">v0.57.0</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
         <div style="margin-top:8px;">
@@ -285,14 +296,6 @@
           <div style="color:var(--muted);">• Nouveau champ Format / reliure (cercle 2)</div>
           <div style="color:var(--muted);">• Identifiants pivots (ARK BnF, OLID, Google Volume ID, OCLC) affichés dans le popover de sources et envoyés à Notion dès qu'ils sont disponibles</div>
           <div style="color:var(--muted);">• Langue désormais extraite aussi depuis BnF et OpenLibrary (normalisation ISO 639-1), plus seulement Google Books</div>
-        </div>
-      </div>
-      <div style="padding:0.75rem 1rem;">
-        <span style="font-weight:600;color:var(--text);">v0.56.1</span>
-        <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
-        <div style="margin-top:8px;">
-          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Recherche ISBN</div>
-          <div style="color:var(--muted);">• Le fallback multi-API continue d'interroger les sources suivantes tant qu'un champ bibliographique sélectionné manque (utile pour Genre, Résumé, Langue, fournis uniquement par Google Books)</div>
         </div>
       </div>
     </div>
