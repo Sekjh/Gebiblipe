@@ -1,4 +1,4 @@
-import { isbn13to10 } from './isbn.js';
+import { isbnVariants } from './isbn.js';
 import { BIB_FIELDS, MERGE_KEYS } from './champs.js';
 
 // Normalise les codes langue vers ISO 639-1 (2 lettres) — les catalogues Unimarc (BnF) et
@@ -22,9 +22,7 @@ export function fetchWithTimeout(url, options = {}, ms = 5000) {
 }
 
 export async function fetchBnF(raw, b) {
-  const isbns = [raw];
-  const isbn10 = isbn13to10(raw);
-  if (isbn10) isbns.push(isbn10);
+  const isbns = isbnVariants(raw);
 
   for (const isbn of isbns) {
     try {
@@ -42,15 +40,13 @@ export async function fetchBnF(raw, b) {
       const lang = gf('101','a'); if (lang) b.language = normalizeLanguage(lang);
       const ark = rec.querySelector('controlfield[tag="003"]')?.textContent?.trim();
       if (ark) { b.sourceIds = b.sourceIds || {}; b.sourceIds.ark = ark; }
-      if(b.titre) { b.source = (isbn === raw) ? 'BnF ISBN-13' : 'BnF ISBN-10'; return; }
+      if(b.titre) { b.source = 'BnF ' + (isbn.length === 13 ? 'ISBN-13' : 'ISBN-10'); return; }
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
 }
 
 export async function fetchOpenLibrary(raw, b) {
-  const isbns = [raw];
-  const isbn10 = isbn13to10(raw);
-  if (isbn10) isbns.push(isbn10);
+  const isbns = isbnVariants(raw);
 
   for (const isbn of isbns) {
     try {
@@ -70,15 +66,13 @@ export async function fetchOpenLibrary(raw, b) {
         if (olid) b.sourceIds.olid = olid;
         if (oclc) b.sourceIds.oclc = oclc;
       }
-      if(b.titre) { b.source = (isbn === raw) ? 'OpenLibrary ISBN-13' : 'OpenLibrary ISBN-10'; return; }
+      if(b.titre) { b.source = 'OpenLibrary ' + (isbn.length === 13 ? 'ISBN-13' : 'ISBN-10'); return; }
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
 }
 
 export async function fetchSudoc(raw, b) {
-  const isbns = [raw];
-  const isbn10 = isbn13to10(raw);
-  if (isbn10) isbns.push(isbn10);
+  const isbns = isbnVariants(raw);
 
   for (const isbn of isbns) {
     try {
@@ -97,7 +91,7 @@ export async function fetchSudoc(raw, b) {
       const lang = gf('101','a'); if (lang) b.language = normalizeLanguage(lang);
       const ppn = rec.querySelector('controlfield[tag="001"]')?.textContent?.trim();
       if (ppn) { b.sourceIds = b.sourceIds || {}; b.sourceIds.ppn = ppn; }
-      if(b.titre) { b.source = (isbn === raw) ? 'SUDOC ISBN-13' : 'SUDOC ISBN-10'; return; }
+      if(b.titre) { b.source = 'SUDOC ' + (isbn.length === 13 ? 'ISBN-13' : 'ISBN-10'); return; }
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
 }
@@ -115,9 +109,7 @@ export async function fetchGoogle(raw, b) {
 }
 
 export async function fetchCover(raw) {
-  const isbns = [raw];
-  const isbn10 = isbn13to10(raw);
-  if (isbn10) isbns.push(isbn10);
+  const isbns = isbnVariants(raw);
   for (const isbn of isbns) {
     const url = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
     try {

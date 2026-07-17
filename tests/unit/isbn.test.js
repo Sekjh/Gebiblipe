@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { validateIsbn, isbn13to10 } from '../../src/isbn.js';
+import { validateIsbn, isbn13to10, isbn10to13, isbnVariants } from '../../src/isbn.js';
 
 describe('validateIsbn', () => {
   test('ISBN-13 valide (Proust Pléiade)', () => {
@@ -56,5 +56,43 @@ describe('isbn13to10', () => {
 
   test('chaîne vide → null', () => {
     expect(isbn13to10('')).toBe(null);
+  });
+});
+
+describe('isbn10to13', () => {
+  test('conversion standard ISBN-10 → 978', () => {
+    expect(isbn10to13('2070360024')).toBe('9782070360024');
+  });
+
+  test('résultat réel de la conversion (vérification checksum)', () => {
+    const result = isbn10to13('0306406152');
+    expect(result).toHaveLength(13);
+    expect(validateIsbn(result)).toBe(true);
+  });
+
+  test('longueur incorrecte → null', () => {
+    expect(isbn10to13('207036002')).toBe(null);
+  });
+
+  test('chaîne vide → null', () => {
+    expect(isbn10to13('')).toBe(null);
+  });
+});
+
+describe('isbnVariants', () => {
+  test('ISBN-13 → [ISBN-13, ISBN-10]', () => {
+    expect(isbnVariants('9782070360024')).toEqual(['9782070360024', '2070360024']);
+  });
+
+  test('ISBN-10 → [ISBN-10, ISBN-13]', () => {
+    expect(isbnVariants('2070360024')).toEqual(['2070360024', '9782070360024']);
+  });
+
+  test('ISBN-13 non convertible (préfixe 979) → une seule variante', () => {
+    expect(isbnVariants('9791032343487')).toEqual(['9791032343487']);
+  });
+
+  test('longueur invalide → une seule variante (la valeur brute)', () => {
+    expect(isbnVariants('123')).toEqual(['123']);
   });
 });

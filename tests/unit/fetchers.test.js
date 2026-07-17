@@ -85,6 +85,16 @@ describe('fetchBnF', () => {
     await expect(fetchBnF('9782070360024', b)).resolves.toBeUndefined();
     expect(b.source).toBeUndefined();
   });
+
+  test('accepte un ISBN-10 en entrée (livre ancien) et retente en ISBN-13 si besoin', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfEmpty })
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfFound });
+    const b = { isbn: '2070360024' };
+    await fetchBnF('2070360024', b);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(b.source).toBe('BnF ISBN-13');
+  });
 });
 
 // ─── fetchSudoc ──────────────────────────────────────────────────────────────
@@ -128,6 +138,16 @@ describe('fetchSudoc', () => {
     await expect(fetchSudoc('9782070360024', b)).resolves.toBeUndefined();
     expect(b.source).toBeUndefined();
   });
+
+  test('accepte un ISBN-10 en entrée (livre ancien) et retente en ISBN-13 si besoin', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocEmpty })
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocFound });
+    const b = { isbn: '2070360024' };
+    await fetchSudoc('2070360024', b);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(b.source).toBe('SUDOC ISBN-13');
+  });
 });
 
 // ─── fetchOpenLibrary ────────────────────────────────────────────────────────
@@ -157,6 +177,16 @@ describe('fetchOpenLibrary', () => {
     fetch.mockRejectedValueOnce(new Error('timeout'));
     const b = { isbn: '9782070360024' };
     await expect(fetchOpenLibrary('9782070360024', b)).resolves.toBeUndefined();
+  });
+
+  test('accepte un ISBN-10 en entrée (livre ancien) et retente en ISBN-13 si besoin', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => olData });
+    const b = { isbn: '2070360024' };
+    await fetchOpenLibrary('2070360024', b);
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(b.source).toBe('OpenLibrary ISBN-13');
   });
 });
 
@@ -223,6 +253,15 @@ describe('fetchCover', () => {
     });
     const url = await fetchCover('9782070360024');
     expect(url).toMatch(/openlibrary\.org/);
+  });
+
+  test('accepte un ISBN-10 en entrée et retente en ISBN-13 si besoin', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, headers: { get: () => '800' } })
+      .mockResolvedValueOnce({ ok: true, headers: { get: () => '5000' } });
+    const url = await fetchCover('2070360024');
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(url).toContain('9782070360024');
   });
 });
 
