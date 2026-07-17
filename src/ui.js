@@ -535,21 +535,39 @@ export async function complementFromSources(isbn) {
   return anyFilled;
 }
 
+// Intitulés des groupes affichés au-dessus des champs, par cercle d'intérêt du champ
+// (cf. src/champs.js) — cercle 1 = socle, 2 = très utile, 3 = forte valeur mais variable.
+// Réutilisé à la fois par renderBibFieldsCard() (fiche de saisie) et
+// renderBibFieldsChecklist() (panneau de configuration).
+export const CIRCLE_LABELS = {
+  1: 'Cercle 1 — Socle',
+  2: 'Cercle 2 — Très utile',
+  3: 'Cercle 3 — Valeur variable',
+};
+
 // Construit la grille des champs bibliographiques configurables (hors Titre/Auteur/ISBN,
-// toujours statiques, et hors Couverture, gérée par le bloc image dédié).
+// toujours statiques, et hors Couverture, gérée par le bloc image dédié), avec un séparateur
+// visuel à chaque changement de cercle (BIB_FIELDS/getActiveBibFields() sont déjà triés par
+// circle croissant). Titre/Auteur (cercle 1, statiques dans index.html) précèdent directement
+// le premier séparateur généré ici — pas de séparateur dupliqué en HTML pour eux, afin d'éviter
+// toute désynchronisation avec CIRCLE_LABELS.
 export function renderBibFieldsCard() {
   const container = document.getElementById('bib-fields-dynamic');
   if (!container) return;
   const fields = getActiveBibFields().filter(f => !f.isCover);
 
+  let lastCircle = null;
   container.innerHTML = fields.map(f => {
+    const heading = f.circle !== lastCircle
+      ? `<p class="section-title bib-circle-title full">${CIRCLE_LABELS[f.circle] || ''}</p>` : '';
+    lastCircle = f.circle;
     const isTextarea = f.key === 'description';
     const fullClass = isTextarea ? ' full' : '';
     const placeholder = f.key === 'categories' ? ' placeholder="ex. Roman, Philosophie"' : f.key === 'dateed' ? ' placeholder="ex. 2025"' : '';
     const control = isTextarea
       ? `<textarea id="${f.id}" rows="3"></textarea>`
       : `<input type="text" id="${f.id}"${placeholder}>`;
-    return `<div class="field${fullClass}"><label for="${f.id}">${f.label} <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label>${control}</div>`;
+    return `${heading}<div class="field${fullClass}"><label for="${f.id}">${f.label} <span class="lbl-src">ISBN</span><span class="lbl-src lbl-src--notion">Notion</span></label>${control}</div>`;
   }).join('');
 
   for (const f of fields) {
@@ -558,14 +576,6 @@ export function renderBibFieldsCard() {
     });
   }
 }
-
-// Intitulés des groupes affichés au-dessus des cases à cocher, par cercle d'intérêt du champ
-// (cf. src/champs.js) — cercle 1 = socle, 2 = très utile, 3 = forte valeur mais variable.
-const CIRCLE_LABELS = {
-  1: 'Cercle 1 — Socle',
-  2: 'Cercle 2 — Très utile',
-  3: 'Cercle 3 — Valeur variable',
-};
 
 // Peuple les cases à cocher du panneau « Champs bibliographiques » depuis la config active,
 // regroupées par cercle d'intérêt (BIB_FIELDS est déjà trié par circle croissant). Les champs

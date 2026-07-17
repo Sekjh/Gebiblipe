@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach } from 'vitest';
-import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds } from '../../src/ui.js';
+import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsCard, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds, CIRCLE_LABELS } from '../../src/ui.js';
 
 // ─── detectCollection ─────────────────────────────────────────────────────────
 
@@ -385,6 +385,39 @@ describe('renderBibFieldsChecklist', () => {
   test('les champs bibliographiques configurables restent cochables (non disabled)', () => {
     renderBibFieldsChecklist();
     expect(document.getElementById('bibcfg-editeur').disabled).toBe(false);
+  });
+});
+
+// ─── renderBibFieldsCard — séparateurs de cercles ─────────────────────────────
+
+describe('renderBibFieldsCard — séparateurs de cercles', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '<div class="grid2" id="bib-fields-dynamic"></div>';
+    localStorage.clear();
+  });
+
+  test('affiche un séparateur par cercle représenté (3 cercles avec la config par défaut)', () => {
+    renderBibFieldsCard();
+    const headings = document.querySelectorAll('#bib-fields-dynamic .bib-circle-title');
+    expect(headings.length).toBe(3);
+    expect(headings[0].textContent).toBe(CIRCLE_LABELS[1]);
+    expect(headings[1].textContent).toBe(CIRCLE_LABELS[2]);
+    expect(headings[2].textContent).toBe(CIRCLE_LABELS[3]);
+  });
+
+  test("n'affiche pas de séparateur en double entre deux champs consécutifs du même cercle", () => {
+    localStorage.setItem('bib_fields', JSON.stringify(['editeur', 'dateed', 'language']));
+    renderBibFieldsCard();
+    const headings = document.querySelectorAll('#bib-fields-dynamic .bib-circle-title');
+    expect(headings.length).toBe(1);
+    expect(headings[0].textContent).toBe(CIRCLE_LABELS[1]);
+  });
+
+  test('chaque séparateur précède directement le premier champ de son cercle', () => {
+    renderBibFieldsCard();
+    const container = document.getElementById('bib-fields-dynamic');
+    const firstHeading = container.querySelector('.bib-circle-title');
+    expect(firstHeading.nextElementSibling.classList.contains('field')).toBe(true);
   });
 });
 
