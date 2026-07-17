@@ -35,12 +35,16 @@ describe('THEMES', () => {
 describe('getExpectedProps', () => {
   const ALLOWED_TYPES = ['rich_text', 'number', 'select', 'checkbox', 'multi_select'];
 
-  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 24 propriétés (19 + 5 identifiants pivots toujours inclus)', () => {
-    expect(Object.keys(getExpectedProps()).length).toBe(24);
+  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 25 propriétés (20 + 5 identifiants pivots toujours inclus)', () => {
+    expect(Object.keys(getExpectedProps()).length).toBe(25);
   });
 
   test("'Version GEBIBLIPE' est de type 'rich_text' et toujours présente", () => {
     expect(getExpectedProps()['Version GEBIBLIPE']).toBe('rich_text');
+  });
+
+  test("'Saisie manuelle' est de type 'checkbox' et toujours présente", () => {
+    expect(getExpectedProps()['Saisie manuelle']).toBe('checkbox');
   });
 
   test('tous les types sont parmi les 5 types Notion autorisés', () => {

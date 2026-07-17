@@ -27,6 +27,13 @@ export function getSearchLog() { return _searchLog; }
 let _sourceIds = {};
 export function getSourceIds() { return _sourceIds; }
 
+// Vrai quand la fiche courante n'a été alimentée par aucune source bibliographique
+// (bouton "Nouveau sans ISBN", ou recherche ISBN dont aucune des 4 sources n'a rien
+// trouvé) — envoyé à Notion comme case à cocher technique (voir buildProps() dans
+// notion.js), à l'instar des identifiants pivots (ARK, OLID…).
+let _manualEntry = false;
+export function isManualEntry() { return _manualEntry; }
+
 let _lastIsbn = '';
 export function getLastIsbn() { return _lastIsbn; }
 
@@ -179,6 +186,7 @@ export function fillForm(b) {
 
   _searchLog = b.searchLog ?? [];
   _sourceIds = b.sourceIds ?? {};
+  _manualEntry = !b.source;
 
   const badgeFields = [['f-titre', 'titre'], ['f-auteur', 'auteur'],
     ...getActiveBibFields().filter(f => !f.isCover).map(f => [f.id, f.key])];
@@ -282,6 +290,7 @@ export function fillFormFromNotion(b) {
   document.getElementById('source-badge').textContent = 'Source : Notion';
   _searchLog = [];
   _sourceIds = {};
+  _manualEntry = false;
 
   // ── Couverture ──
   const img = document.getElementById('cover-img');

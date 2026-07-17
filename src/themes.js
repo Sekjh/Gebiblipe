@@ -30,6 +30,7 @@ const CORE_EXPECTED_PROPS = {
   'Collection (livre)':    'checkbox',
   'Citations':             'rich_text',
   'Version GEBIBLIPE':     'rich_text',
+  'Saisie manuelle':       'checkbox',
 };
 
 // Fusionne les propriétés toujours présentes avec celles des champs bibliographiques

@@ -20,6 +20,7 @@
     "État":                 { "type": "select" },
     "Collection (livre)":   { "type": "checkbox" },
     "Version GEBIBLIPE":    { "type": "rich_text" },
+    "Saisie manuelle":      { "type": "checkbox" },
     "ARK BnF":              { "type": "rich_text" },
     "OLID":                 { "type": "rich_text" },
     "Google Volume ID":     { "type": "rich_text" },

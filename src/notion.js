@@ -1,7 +1,7 @@
 import { getConfig, notionUrl, notionHeaders, getMissingConfigKeys } from './config.js';
 import { getExpectedProps, propSchema } from './themes.js';
 import { getActiveBibFields, PIVOT_FIELDS } from './champs.js';
-import { getSourceIds } from './ui.js';
+import { getSourceIds, isManualEntry } from './ui.js';
 import { APP_VERSION } from './version.js';
 
 // Mode création (null) ou mise à jour (pageId de la page existante)
@@ -254,6 +254,7 @@ function buildProps(get, cb, sync) {
     'Citations':           { rich_text: [{ text: { content: get('f-citations') } }] },
     'Commentaire':         { rich_text: [{ text: { content: get('f-comment') } }] },
     'Version GEBIBLIPE':   { rich_text: [{ text: { content: APP_VERSION } }] },
+    'Saisie manuelle':     { checkbox: isManualEntry() },
   };
 
   // Champs bibliographiques configurables — seuls les champs actifs sont envoyés

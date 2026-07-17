@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach } from 'vitest';
-import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsCard, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds, CIRCLE_LABELS, startManualEntry } from '../../src/ui.js';
+import { detectCollection, setField, setFieldNotion, toggleLu, fillFormFromNotion, fillForm, renderBibFieldsCard, renderBibFieldsChecklist, toggleSourcePopover, getSourceIds, CIRCLE_LABELS, startManualEntry, isManualEntry } from '../../src/ui.js';
 
 // ─── detectCollection ─────────────────────────────────────────────────────────
 
@@ -499,6 +499,37 @@ describe('startManualEntry', () => {
   test('déplace le focus sur le champ Titre', () => {
     startManualEntry();
     expect(document.activeElement.id).toBe('f-titre');
+  });
+
+  test('isManualEntry() devient vrai (aucune source bibliographique)', () => {
+    startManualEntry();
+    expect(isManualEntry()).toBe(true);
+  });
+});
+
+// ─── isManualEntry ─────────────────────────────────────────────────────────────
+
+describe('isManualEntry', () => {
+  beforeEach(() => {
+    document.body.innerHTML = FULL_DOM;
+    localStorage.clear();
+  });
+
+  test('vrai après fillForm() avec un livre sans source (recherche ISBN infructueuse)', () => {
+    fillForm({ isbn: '9999999999999', titre: '', auteur: '', source: '', searchLog: [], fieldSources: {} });
+    expect(isManualEntry()).toBe(true);
+  });
+
+  test('faux après fillForm() avec un livre trouvé via une source bibliographique', () => {
+    fillForm({ isbn: '9782070360024', titre: 'Le Capital', auteur: 'Karl Marx', source: 'BnF ISBN-13', searchLog: [], fieldSources: {} });
+    expect(isManualEntry()).toBe(false);
+  });
+
+  test('faux après fillFormFromNotion() (chargement depuis Notion, pas une saisie manuelle)', () => {
+    fillForm({ isbn: '', titre: '', auteur: '', source: '', searchLog: [], fieldSources: {} });
+    expect(isManualEntry()).toBe(true);
+    fillFormFromNotion(NOTION_BOOK);
+    expect(isManualEntry()).toBe(false);
   });
 });
 

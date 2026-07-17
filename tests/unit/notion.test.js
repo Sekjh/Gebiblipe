@@ -188,6 +188,7 @@ describe('doSend', () => {
     expect(body.properties['Date de lecture'].rich_text[0].text.content).toBe('Juin 2024');
     expect(body.properties['Collection (livre)'].checkbox).toBe(false);
     expect(body.properties['Version GEBIBLIPE'].rich_text[0].text.content).toBe(APP_VERSION);
+    expect(body.properties['Saisie manuelle'].checkbox).toBe(false);
   });
 
   test("omet les props dont le nom est dans sync.conflicts", async () => {
@@ -289,6 +290,7 @@ describe('updatePageFull', () => {
     expect(body.properties['Auteur'].rich_text[0].text.content).toBe('Karl Marx');
     expect(body.properties['Pages'].number).toBe(900);
     expect(body.properties['Version GEBIBLIPE'].rich_text[0].text.content).toBe(APP_VERSION);
+    expect(body.properties['Saisie manuelle'].checkbox).toBe(false);
   });
 
   test('affiche le message de succès dans notion-status', async () => {
