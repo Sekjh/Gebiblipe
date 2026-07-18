@@ -371,7 +371,7 @@ export async function suggestTheme() {
   status.textContent = '✦ Analyse en cours…';
 
   const sousThemes = Object.entries(THEMES).map(([t, ss]) => `${t} : ${ss.join(', ')}`).join('\n');
-  const prompt = `Tu es un bibliothécaire expert. Pour le livre "${titre}" de ${auteur || 'auteur inconnu'}, choisis le thème et le sous-thème les plus appropriés parmi ces options exactes :
+  const prompt = `Tu es un bibliothécaire expert. Pour l'ouvrage (livre ou périodique) "${titre}" de ${auteur || 'auteur inconnu'}, choisis le thème et le sous-thème les plus appropriés parmi ces options exactes :
 
 ${sousThemes}
 

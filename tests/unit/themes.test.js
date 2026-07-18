@@ -8,15 +8,22 @@ beforeEach(() => {
 });
 
 describe('THEMES', () => {
-  test('contient exactement 11 thèmes', () => {
-    expect(Object.keys(THEMES).length).toBe(11);
+  test('contient exactement 12 thèmes', () => {
+    expect(Object.keys(THEMES).length).toBe(12);
   });
 
   test('contient les thèmes attendus', () => {
     expect(THEMES).toHaveProperty('Philosophie');
     expect(THEMES).toHaveProperty('Littérature');
     expect(THEMES).toHaveProperty('Histoire');
+    expect(THEMES).toHaveProperty('Presse & périodiques');
     expect(THEMES).toHaveProperty('Autre');
+  });
+
+  test("'Presse & périodiques' couvre revues et journaux", () => {
+    expect(THEMES['Presse & périodiques']).toEqual(
+      expect.arrayContaining(['Quotidien généraliste', 'Revue littéraire', 'Revue scientifique'])
+    );
   });
 
   test('chaque valeur est un tableau de strings non vide', () => {

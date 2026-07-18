@@ -11,6 +11,7 @@ export const THEMES = {
   "Droit & politique": ["Droit constitutionnel","Droit international","Science politique","Géopolitique","Théorie politique"],
   "Économie": ["Économie politique","Histoire économique","Économie comportementale","Finance"],
   "Psychologie": ["Psychanalyse","Psychologie sociale","Psychologie cognitive","Neuropsychologie"],
+  "Presse & périodiques": ["Quotidien généraliste","Presse internationale","Hebdomadaire d'actualité","Revue littéraire","Revue scientifique","Magazine culturel","Presse économique","Presse spécialisée"],
   "Autre": ["—"]
 };
 
