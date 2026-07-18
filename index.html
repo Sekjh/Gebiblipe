@@ -9,7 +9,7 @@
 <body>
 
 <div class="container">
-  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.59.1 — 2026-07-17</span></h1>
+  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.60.0 — 2026-07-18</span></h1>
   <p class="header-caps">ISBN (13 et 10) et ISSN (FR) — sources :
     <span class="lbl-src lbl-src--bnf">BnF</span>
     <span class="lbl-src lbl-src--openlibrary">OpenLibrary</span>
@@ -270,6 +270,18 @@
     </div>
         <div style="font-size:12px;line-height:1.8;">
       <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+        <span style="font-weight:600;color:var(--text);">v0.60.0</span>
+        <span style="color:var(--muted);margin-left:6px;">2026-07-18</span>
+        <div style="margin-top:8px;">
+          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Recherche ISSN</div>
+          <div style="color:var(--muted);">• Recherche bibliographique par ISSN français (BnF, SUDOC) en plus de l'ISBN, détection automatique du type d'identifiant</div>
+          <div style="color:var(--muted);">• Nouveau thème « Presse & périodiques » pour classer les revues et journaux</div>
+          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Couvertures</div>
+          <div style="color:var(--muted);">• Fiabilisation de la détection des couvertures OpenLibrary (l'ancienne heuristique ne détectait jamais l'absence de couverture)</div>
+          <div style="color:var(--muted);">• La cover de page Notion utilise désormais l'image OpenLibrary haute résolution (OLID, repli ISBN)</div>
+        </div>
+      </div>
+      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
         <span style="font-weight:600;color:var(--text);">v0.59.1</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
         <div style="margin-top:8px;">
@@ -280,7 +292,7 @@
           <div style="color:var(--muted);">• Recherche bibliographique incomplète pour les livres anciens identifiés par leur seul ISBN-10 : la conversion ne fonctionnait que dans le sens ISBN-13 → ISBN-10, jamais l'inverse</div>
         </div>
       </div>
-      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+      <div style="padding:0.75rem 1rem;">
         <span style="font-weight:600;color:var(--text);">v0.59.0</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
         <div style="margin-top:8px;">
@@ -289,20 +301,6 @@
           <div style="color:var(--muted);">• Tableau récapitulatif (statut, champs modifiés) avec case à exclure par ligne, avant envoi groupé vers Notion</div>
           <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Corrections</div>
           <div style="color:var(--muted);">• Le champ Format n'était jamais relu depuis Notion, ce qui pouvait effacer silencieusement sa valeur au renvoi</div>
-        </div>
-      </div>
-      <div style="padding:0.75rem 1rem;">
-        <span style="font-weight:600;color:var(--text);">v0.58.0</span>
-        <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
-        <div style="margin-top:8px;">
-          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Sources & traçabilité</div>
-          <div style="color:var(--muted);">• SUDOC (catalogue collectif universitaire) ajouté comme 4e source de fallback, avec identifiant pivot PPN</div>
-          <div style="color:var(--muted);">• Badges de source colorés par champ selon la source réelle (BnF, OpenLibrary, Google Books, SUDOC)</div>
-          <div style="color:var(--muted);">• Version technique de l'app et indicateur « Saisie manuelle » envoyés automatiquement dans chaque fiche Notion</div>
-          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Saisie</div>
-          <div style="color:var(--muted);">• Bouton « Nouveau sans ISBN » pour ajouter un livre sans passer par la recherche ISBN</div>
-          <div style="color:var(--muted);">• Fiche réorganisée avec des séparateurs visuels par cercle d'intérêt</div>
-          <div style="color:var(--muted);">• Titre et Auteur désormais obligatoires avant l'envoi vers Notion</div>
         </div>
       </div>
     </div>

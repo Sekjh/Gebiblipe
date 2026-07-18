@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.60.0] — 2026-07-18
+
 ### Added
 - Recherche bibliographique par ISSN français (BnF, SUDOC) en plus de l'ISBN : le champ de recherche existant détecte automatiquement le type d'identifiant (8 chiffres = ISSN, 10/13 = ISBN) ; OpenLibrary et Google Books, qui n'indexent pas l'ISSN, sont exclus de la recherche dans ce cas, de même que la recherche de couverture
 - En-tête : mise en évidence du support ISBN (13 et 10) et ISSN (FR), et des sources bibliographiques disponibles (BnF, OpenLibrary, Google Books, SUDOC), sous le titre de l'application
@@ -273,7 +277,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.1...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.60.0...HEAD
+[0.60.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.1...v0.60.0
 [0.59.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.0...v0.59.1
 [0.59.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.58.0...v0.59.0
 [0.58.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.57.0...v0.58.0
