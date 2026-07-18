@@ -8,6 +8,7 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ### Added
 - Recherche bibliographique par ISSN français (BnF, SUDOC) en plus de l'ISBN : le champ de recherche existant détecte automatiquement le type d'identifiant (8 chiffres = ISSN, 10/13 = ISBN) ; OpenLibrary et Google Books, qui n'indexent pas l'ISSN, sont exclus de la recherche dans ce cas, de même que la recherche de couverture
+- En-tête : mise en évidence du support ISBN (13 et 10) et ISSN (FR), et des sources bibliographiques disponibles (BnF, OpenLibrary, Google Books, SUDOC), sous le titre de l'application
 
 ### Changed
 - La couverture envoyée comme cover de page Notion privilégie désormais l'image OpenLibrary haute résolution (`-L`) reconstruite depuis l'OLID de l'édition (repli sur l'ISBN, puis sur la vignette affichée si aucune des deux n'est une couverture OpenLibrary)
