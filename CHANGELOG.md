@@ -14,6 +14,7 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ### Fixed
 - Couvertures OpenLibrary fréquemment vides : l'ancienne heuristique de validation (`Content-Length > 1000`) ne détectait jamais l'absence de couverture, `covers.openlibrary.org` ne renvoyant jamais cet en-tête (réponses `chunked`) — remplacée par une vérification `Content-Type`, seul discriminant fiable entre une vraie image et le placeholder 1×1 renvoyé en HTTP 200 quand aucune couverture n'existe ; en l'absence de couverture, le formulaire reste maintenant entièrement vierge (ni image ni badge résiduel)
+- Recherche ISSN : le champ « Date de cette édition » affichait la plage de publication du périodique avec un tiret final trompeur (ex. « 1944- »), et le champ « Pages » récupérait une notation de volumes (ex. « vol. ») sans rapport avec un nombre de pages — la date est désormais nettoyée de son tiret final, et le champ Pages n'est plus renseigné pour un périodique (vérifié en direct sur plusieurs titres BnF/SUDOC)
 
 ---
 

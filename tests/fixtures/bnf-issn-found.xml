@@ -15,7 +15,10 @@
           </datafield>
           <datafield tag="210">
             <subfield code="c">Le Monde</subfield>
-            <subfield code="d">1944</subfield>
+            <subfield code="d">1944-</subfield>
+          </datafield>
+          <datafield tag="215">
+            <subfield code="d">50 cm</subfield>
           </datafield>
           <datafield tag="101">
             <subfield code="a">fre</subfield>

@@ -164,7 +164,12 @@ describe('fetchBnfIssn', () => {
     expect(b.source).toBe('BnF ISSN');
     expect(b.titre).toContain('Le Monde');
     expect(b.editeur).toBe('Le Monde');
+    // La notice source porte "1944-" (plage ouverte, toujours publié) — le tiret final est retiré
+    // pour l'affichage (vérifié en direct : sans ce nettoyage, la date de parution s'affichait
+    // avec un tiret final trompeur, lu comme une donnée tronquée).
     expect(b.dateed).toBe('1944');
+    // 215$a d'un périodique porte une notation de volumes, jamais un nombre de pages — non assigné.
+    expect(b.pages).toBe('');
     expect(b.sourceIds.ark).toBe('https://catalogue.bnf.fr/ark:/12148/cb34378825c');
     expect(fetch).toHaveBeenCalledTimes(1);
   });
@@ -192,6 +197,10 @@ describe('fetchSudocIssn', () => {
     expect(b.source).toBe('SUDOC ISSN');
     expect(b.titre).toBe('Le Monde');
     expect(b.editeur).toBe('Le Monde');
+    // "1944-" (plage ouverte) → tiret final retiré ; 215$a = "vol." (notation de volumes, pas un
+    // nombre de pages) → non assigné au champ Pages.
+    expect(b.dateed).toBe('1944');
+    expect(b.pages).toBe('');
     expect(b.sourceIds.ppn).toBe('039569357');
     expect(fetch).toHaveBeenCalledTimes(1);
   });

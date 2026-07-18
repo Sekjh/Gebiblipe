@@ -21,10 +21,21 @@ export function fetchWithTimeout(url, options = {}, ms = 5000) {
   return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(tid));
 }
 
+// Une notice UNIMARC de périodique (210/214 $d) porte la plage de publication de la revue entière,
+// souvent ouverte ("1944-" = encore publiée aujourd'hui) — le tiret final, correct en notice
+// bibliographique, se lit comme une donnée tronquée dans un champ « Date de cette édition » pensé
+// pour un livre. On le retire pour l'affichage (vérifié en direct sur BnF/SUDOC : Le Monde, Esprit…).
+function cleanSerialDate(date) {
+  return date.replace(/-\s*$/, '');
+}
+
 // Extraction des champs UNIMARC communs à BnF et SUDOC (SRU) — les deux catalogues renvoient la
 // même structure de notice (datafield/subfield) pour l'ISBN comme pour l'ISSN, seul le contexte
-// de requête (bib.isbn/isb= vs bib.issn/isn=) diffère.
-function parseUnimarcFields(rec, { appendSubtitle = false } = {}) {
+// de requête (bib.isbn/isb= vs bib.issn/isn=) diffère. `isSerial` adapte l'extraction aux
+// ressources continues (périodiques, ISSN) : la plage de dates est nettoyée de son tiret final, et
+// 215$a — qui porte une notation de volumes ("vol.", "354 volumes"…) pour un périodique, jamais un
+// nombre de pages — n'est pas assigné au champ Pages (vérifié en direct).
+function parseUnimarcFields(rec, { appendSubtitle = false, isSerial = false } = {}) {
   const gf = (tag,sub) => { const el=rec.querySelector(`datafield[tag="${tag}"] subfield[code="${sub}"]`); return el?el.textContent.trim():''; };
   const gfa = (tag,sub) => Array.from(rec.querySelectorAll(`datafield[tag="${tag}"] subfield[code="${sub}"]`)).map(e=>e.textContent.trim());
   const fields = {};
@@ -38,8 +49,9 @@ function parseUnimarcFields(rec, { appendSubtitle = false } = {}) {
   }
   fields.editeur = gf('210','c')||gf('214','c');
   fields.dateed = gf('210','d')||gf('214','d');
+  if (isSerial) fields.dateed = cleanSerialDate(fields.dateed);
   fields.collection = gf('225','a');
-  fields.pages = gf('215','a');
+  fields.pages = isSerial ? '' : gf('215','a');
   const lang = gf('101','a');
   if (lang) fields.language = normalizeLanguage(lang);
   return fields;
@@ -49,12 +61,12 @@ function parseUnimarcFields(rec, { appendSubtitle = false } = {}) {
 // capture l'identifiant pivot (ARK pour BnF, PPN pour SUDOC). Retourne true si une notice avec
 // titre a été trouvée — utilisé aussi bien pour les requêtes ISBN (avec retry de variantes) que
 // ISSN (requête unique, pas de variante 10/13).
-async function fetchUnimarcSru(url, b, { sourceLabel, pivotTag, pivotKey, appendSubtitle = false }) {
+async function fetchUnimarcSru(url, b, { sourceLabel, pivotTag, pivotKey, appendSubtitle = false, isSerial = false }) {
   const xml = await fetchWithTimeout(url).then(r => r.text());
   const doc = new DOMParser().parseFromString(xml, 'text/xml');
   const rec = doc.querySelector('record');
   if (!rec) return false;
-  Object.assign(b, parseUnimarcFields(rec, { appendSubtitle }));
+  Object.assign(b, parseUnimarcFields(rec, { appendSubtitle, isSerial }));
   const pivot = rec.querySelector(`controlfield[tag="${pivotTag}"]`)?.textContent?.trim();
   if (pivot) { b.sourceIds = b.sourceIds || {}; b.sourceIds[pivotKey] = pivot; }
   if (b.titre) { b.source = sourceLabel; return true; }
@@ -78,7 +90,7 @@ export async function fetchBnF(raw, b) {
 export async function fetchBnfIssn(raw, b) {
   try {
     const url = `https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&query=bib.issn+adj+"${raw}"&recordSchema=unimarcxchange&maximumRecords=1`;
-    await fetchUnimarcSru(url, b, { sourceLabel: 'BnF ISSN', pivotTag: '003', pivotKey: 'ark', appendSubtitle: true });
+    await fetchUnimarcSru(url, b, { sourceLabel: 'BnF ISSN', pivotTag: '003', pivotKey: 'ark', appendSubtitle: true, isSerial: true });
   } catch { /* swallow: erreur réseau ou timeout */ }
 }
 
@@ -127,7 +139,7 @@ export async function fetchSudocIssn(raw, b) {
   try {
     const query = encodeURIComponent(`isn=${raw}`);
     const url = `https://www.sudoc.abes.fr/cbs/sru?version=1.1&operation=searchRetrieve&query=${query}&recordSchema=unimarc&maximumRecords=1`;
-    await fetchUnimarcSru(url, b, { sourceLabel: 'SUDOC ISSN', pivotTag: '001', pivotKey: 'ppn' });
+    await fetchUnimarcSru(url, b, { sourceLabel: 'SUDOC ISSN', pivotTag: '001', pivotKey: 'ppn', isSerial: true });
   } catch { /* swallow: erreur réseau ou timeout */ }
 }
 
