@@ -6,6 +6,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Fixed
+- Numéro de version GEBIBLIPE envoyé à Notion (`src/version.js`) resté figé à `0.58.0` alors que l'application était déjà en v0.60.0 — l'étape de release ne mettait à jour que `index.html`, pas cette source dédiée ; corrigé et ajouté au protocole de release (`CLAUDE.md`) pour que les deux restent synchronisés
+
 ---
 
 ## [0.60.0] — 2026-07-18

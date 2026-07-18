@@ -46,6 +46,7 @@ release: v0.50.1
 | `CHANGELOG.md` | À chaque commit sur `dev` — section `[Unreleased]` |
 | `index.html` ligne 12 | Uniquement lors d'une release |
 | `index.html` `#devlog` | Uniquement lors d'une release |
+| `src/version.js` (`APP_VERSION`) | Uniquement lors d'une release — synchroniser avec `index.html` ligne 12 |
 | `index.html` `#doc-panel` | À chaque `feat:`, `### Changed` ou `### Removed` — mettre à jour la section Fonctionnalités |
 | Git tag | Uniquement lors d'une release sur `main` |
 
@@ -136,9 +137,12 @@ npm audit --audit-level=high  # 0 vulnérabilité high ou critical
 - Section `#devlog` : synchroniser les 3 dernières versions depuis `CHANGELOG.md`
 - Dates du devlog HTML aussi en format `YYYY-MM-DD`
 
+**3b. Mettre à jour `src/version.js`**
+- `APP_VERSION` doit correspondre exactement à la version de `index.html` ligne 12 (c'est cette valeur qui est envoyée à Notion)
+
 **4. Commit de release sur dev**
 ```
-git add CHANGELOG.md index.html
+git add CHANGELOG.md index.html src/version.js
 git commit -m "release: vX.Y.Z"
 git push origin dev
 ```
