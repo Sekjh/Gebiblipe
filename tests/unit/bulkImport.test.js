@@ -198,6 +198,17 @@ describe('sendRecord', () => {
     expect(FIELD_ID_TO_BOOK_KEY['f-pages']).toBe('pages');
     expect(FIELD_ID_TO_BOOK_KEY['f-titre']).toBe('titre');
   });
+
+  test('envoie la couverture OpenLibrary reconstruite en -L (préférence OLID) plutôt que la vignette -M', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'new-page' }) });
+    const record = {
+      book: { titre: 'Titre', auteur: 'Auteur', isbn: '9782070360024', couverture: 'https://covers.openlibrary.org/b/isbn/9782070360024-M.jpg' },
+      pageId: null, manualEntry: false, sourceIds: { olid: 'OL7358935M' },
+    };
+    await sendRecord(record, CFG, { conflicts: [] });
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.cover).toEqual({ type: 'external', external: { url: 'https://covers.openlibrary.org/b/olid/OL7358935M-L.jpg' } });
+  });
 });
 
 // ─── sendBatch ──────────────────────────────────────────────────────────────

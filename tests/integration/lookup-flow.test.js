@@ -10,6 +10,8 @@ const fixturesDir = join(__dirname, '../fixtures');
 const bnfFound  = readFileSync(join(fixturesDir, 'bnf-found.xml'),  'utf8');
 const bnfEmpty  = readFileSync(join(fixturesDir, 'bnf-empty.xml'),  'utf8');
 const sudocFound = readFileSync(join(fixturesDir, 'sudoc-found.xml'), 'utf8');
+const sudocEmpty = readFileSync(join(fixturesDir, 'sudoc-empty.xml'), 'utf8');
+const bnfIssnFound = readFileSync(join(fixturesDir, 'bnf-issn-found.xml'), 'utf8');
 const olData    = JSON.parse(readFileSync(join(fixturesDir, 'openlibrary-response.json'), 'utf8'));
 const googleData = JSON.parse(readFileSync(join(fixturesDir, 'google-response.json'), 'utf8'));
 
@@ -146,6 +148,28 @@ describe('Toutes les sources échouent', () => {
     await lookup('9782070360024');
     expect(document.getElementById('status').textContent).toContain('introuvable');
     expect(document.getElementById('f-titre').value).toBe('');
+  });
+});
+
+// ─── Recherche par ISSN ──────────────────────────────────────────────────────
+
+describe('Recherche par ISSN', () => {
+  test('remplit le formulaire depuis BnF (source ISSN), consulte SUDOC (pas de personne auteur en périodique) mais jamais OpenLibrary/Google, sans couverture', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfIssnFound }) // BnF ISSN : trouve le titre
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocEmpty });  // SUDOC ISSN : consulté (auteur jamais rempli pour un périodique)
+    await lookup('03952037');
+    expect(document.getElementById('f-titre').value).toContain('Le Monde');
+    expect(document.getElementById('source-badge').textContent).toContain('BnF ISSN');
+    expect(document.getElementById('source-badge').textContent).not.toContain('SUDOC');
+    expect(document.getElementById('cover-img').style.display).toBe('none');
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test('ISSN avec chiffre de contrôle incorrect → erreur, ne contacte pas les APIs', async () => {
+    await lookup('03952038');
+    expect(fetch).not.toHaveBeenCalled();
+    expect(document.getElementById('status').textContent).toContain('invalide');
   });
 });
 

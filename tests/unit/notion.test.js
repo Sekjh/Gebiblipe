@@ -17,7 +17,7 @@ const queryTwo        = JSON.parse(readFileSync(join(fixturesDir, 'notion-query-
 import {
   lookupFromNotion, syncDatabaseProps, doSend, updatePageFull, sendToNotion,
   setCurrentPageId, clearCurrentPageId, updateConfigWarning,
-  buildProps, createNotionPage, updateNotionPage,
+  buildProps, createNotionPage, updateNotionPage, resolveNotionCoverUrl,
 } from '../../src/notion.js';
 import { APP_VERSION } from '../../src/version.js';
 
@@ -315,6 +315,42 @@ describe('updatePageFull', () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     await updatePageFull('page-abc-123', CFG, { created: [], conflicts: [] });
     expect(document.getElementById('notion-status').textContent).toContain('Mis à jour dans Notion');
+  });
+});
+
+// ─── resolveNotionCoverUrl ─────────────────────────────────────────────────
+// La préférence OLID (édition précisément identifiée) est couverte de façon exhaustive par les
+// tests purs de openLibraryLargeCoverUrl() (tests/unit/fetchers.test.js) ; ici on vérifie la
+// composition avec coverUrlFromDom() telle qu'utilisée par doSend()/updatePageFull().
+
+describe('resolveNotionCoverUrl', () => {
+  beforeEach(() => {
+    document.body.innerHTML = DOM_FORM;
+  });
+
+  test('aucune couverture affichée → null', () => {
+    expect(resolveNotionCoverUrl()).toBeNull();
+  });
+
+  test('couverture OpenLibrary -M affichée → reconstruite en -L', () => {
+    document.getElementById('cover-img').src = 'https://covers.openlibrary.org/b/isbn/9782070360024-M.jpg';
+    document.getElementById('cover-img').style.display = 'block';
+    expect(resolveNotionCoverUrl()).toBe('https://covers.openlibrary.org/b/isbn/9782070360024-L.jpg');
+  });
+
+  test('couverture non-OpenLibrary (Google Books) affichée → transmise telle quelle', () => {
+    document.getElementById('cover-img').src = 'https://books.google.com/books/content?id=abc123';
+    document.getElementById('cover-img').style.display = 'block';
+    expect(resolveNotionCoverUrl()).toBe('https://books.google.com/books/content?id=abc123');
+  });
+
+  test('le cover envoyé à Notion via doSend() reflète resolveNotionCoverUrl()', async () => {
+    document.getElementById('cover-img').src = 'https://covers.openlibrary.org/b/isbn/9782070360024-M.jpg';
+    document.getElementById('cover-img').style.display = 'block';
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    await doSend(CFG, { created: [], conflicts: [] });
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.cover).toEqual({ type: 'external', external: { url: 'https://covers.openlibrary.org/b/isbn/9782070360024-L.jpg' } });
   });
 });
 

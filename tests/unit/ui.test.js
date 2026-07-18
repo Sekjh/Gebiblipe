@@ -329,6 +329,23 @@ describe('fillFormFromNotion', () => {
     expect(img.classList.contains('prefilled')).toBe(false);
   });
 
+  test('sans couverture, vide entièrement l\'image et le badge (pas de résidu d\'un chargement précédent)', () => {
+    const img = document.getElementById('cover-img');
+    const badge = document.getElementById('cover-src-badge');
+    img.src = 'https://covers.example.com/stale.jpg';
+    img.style.display = 'block';
+    img.classList.add('prefilled');
+    badge.textContent = 'BnF';
+
+    fillFormFromNotion({ ...NOTION_BOOK, couverture: '' });
+
+    expect(img.getAttribute('src')).toBe('');
+    expect(img.style.display).toBe('none');
+    expect(img.classList.contains('prefilled')).toBe(false);
+    expect(img.classList.contains('notion-filled')).toBe(false);
+    expect(badge.textContent).toBe('');
+  });
+
   test("change le texte du bouton en 'Mettre à jour dans Notion'", () => {
     fillFormFromNotion(NOTION_BOOK);
     expect(document.getElementById('btn-send-notion').textContent).toBe('Mettre à jour dans Notion');
@@ -467,6 +484,23 @@ describe('fillForm — couleurs de badge par source réelle', () => {
     const badge = document.getElementById('f-editeur').closest('.field').querySelector('.lbl-src');
     expect(badge.textContent).toBe('ISBN');
     expect(badge.className).toBe('lbl-src');
+  });
+
+  test('sans couverture trouvée, vide entièrement l\'image et le badge (pas de résidu d\'une recherche précédente)', () => {
+    const img = document.getElementById('cover-img');
+    const badge = document.getElementById('cover-src-badge');
+    img.src = 'https://covers.example.com/stale.jpg';
+    img.style.display = 'block';
+    img.classList.add('notion-filled');
+    badge.textContent = 'Notion';
+
+    fillForm({ isbn: '03952037', titre: 'Le Monde', auteur: '', source: 'BnF ISSN', searchLog: [], fieldSources: {}, couverture: '' });
+
+    expect(img.getAttribute('src')).toBe('');
+    expect(img.style.display).toBe('none');
+    expect(img.classList.contains('prefilled')).toBe(false);
+    expect(img.classList.contains('notion-filled')).toBe(false);
+    expect(badge.textContent).toBe('');
   });
 });
 

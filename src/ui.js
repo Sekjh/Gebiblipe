@@ -1,5 +1,5 @@
 import { THEMES } from './themes.js';
-import { validateIsbn } from './isbn.js';
+import { validateIdentifier, identifierType } from './isbn.js';
 import { fetchCover, resolveFromSources } from './fetchers.js';
 import { callClaude } from './claude.js';
 import { MANDATORY_FIELDS, BIB_FIELDS, PIVOT_FIELDS, MERGE_KEYS, getActiveBibFields } from './champs.js';
@@ -196,7 +196,8 @@ export function fillForm(b) {
       if (colorClass) coverBadge.classList.add(colorClass);
     }
   } else {
-    img.style.display = 'none'; img.classList.remove('prefilled');
+    img.src = ''; img.style.display = 'none'; img.classList.remove('prefilled', 'notion-filled');
+    if (coverBadge) coverBadge.textContent = '';
   }
 
   const collectionHint = detectCollection(b);
@@ -290,6 +291,7 @@ export function fillFormFromNotion(b) {
     img.src = '';
     img.style.display = 'none';
     img.classList.remove('prefilled', 'notion-filled');
+    if (coverBadge) coverBadge.textContent = '';
   }
 
   // ── Hint collection (informatif, sans écraser la valeur Notion) ──
@@ -307,8 +309,9 @@ export function fillFormFromNotion(b) {
 export async function lookup(isbnArg = '') {
   const raw = isbnArg.trim().replace(/[-\s]/g, '');
   if (!raw) return;
-  if (!validateIsbn(raw)) {
-    setStatus('⚠️ ISBN invalide — vérifie le numéro (chiffre de contrôle incorrect).');
+  const idType = identifierType(raw);
+  if (!validateIdentifier(raw)) {
+    setStatus('⚠️ ISBN/ISSN invalide — vérifie le numéro (chiffre de contrôle incorrect).');
     return;
   }
   _lastIsbn = raw;
@@ -322,21 +325,23 @@ export async function lookup(isbnArg = '') {
   const empty = { isbn: raw, source: '' };
   for (const key of MERGE_KEYS) empty[key] = '';
 
-  const { book: b, searchLog } = await resolveFromSources(raw, empty, activeKeys, engine, { stopWhenComplete: true });
+  const { book: b, searchLog } = await resolveFromSources(raw, empty, activeKeys, engine, { stopWhenComplete: true, idType });
   b.searchLog = searchLog;
 
-  setStatus(b.titre ? '' : 'ISBN introuvable — remplis manuellement.');
+  setStatus(b.titre ? '' : (idType === 'issn' ? 'ISSN introuvable — remplis manuellement.' : 'ISBN introuvable — remplis manuellement.'));
 
-  if (activeKeys.has('couverture') && !b.couverture) {
-    const cover = await fetchCover(raw);
+  if (idType === 'isbn' && activeKeys.has('couverture') && !b.couverture) {
+    const cover = await fetchCover(raw, { olid: b.sourceIds?.olid });
     if (cover) { b.couverture = cover; b.fieldSources.couverture = 'OL Covers'; }
   }
-  const coversContributed = b.fieldSources.couverture ? ['couverture'] : [];
-  b.searchLog.push({
-    source: 'OL Covers',
-    status: coversContributed.length ? 'importé' : 'non_trouvé',
-    fields: coversContributed,
-  });
+  if (idType === 'isbn') {
+    const coversContributed = b.fieldSources.couverture ? ['couverture'] : [];
+    b.searchLog.push({
+      source: 'OL Covers',
+      status: coversContributed.length ? 'importé' : 'non_trouvé',
+      fields: coversContributed,
+    });
+  }
 
   fillForm(b);
 }
@@ -476,6 +481,7 @@ Commence ta réponse par "#Générée automatiquement par IA" puis une ligne vid
 // Complète les champs vides du formulaire via les sources bibliographiques sans toucher
 // aux champs déjà remplis (notamment ceux venus de Notion).
 export async function complementFromSources(isbn) {
+  const idType = identifierType(isbn);
   const engine = localStorage.getItem('search_engine') || 'bnf';
   const get = id => document.getElementById(id)?.value?.trim() || '';
   const activeKeys = new Set(getActiveBibFields().map(f => f.key));
@@ -488,7 +494,7 @@ export async function complementFromSources(isbn) {
     return img && img.style.display !== 'none' && !!img.src;
   };
 
-  const { book, sourceIds, contributedFields } = await resolveFromSources(isbn, current, activeKeys, engine, { stopWhenComplete: true });
+  const { book, sourceIds, contributedFields } = await resolveFromSources(isbn, current, activeKeys, engine, { stopWhenComplete: true, idType });
   _sourceIds = sourceIds;
 
   let anyFilled = false;
@@ -498,8 +504,8 @@ export async function complementFromSources(isbn) {
     anyFilled = true;
   }
 
-  if (activeKeys.has('couverture') && !hasCover()) {
-    const cover = await fetchCover(isbn);
+  if (idType === 'isbn' && activeKeys.has('couverture') && !hasCover()) {
+    const cover = await fetchCover(isbn, { olid: sourceIds.olid });
     if (cover) {
       const img = document.getElementById('cover-img');
       const coverBadge = document.getElementById('cover-src-badge');

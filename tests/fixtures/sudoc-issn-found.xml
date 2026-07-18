@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<srw:searchRetrieveResponse xmlns:srw="http://www.loc.gov/zing/srw/">
+  <srw:numberOfRecords>1</srw:numberOfRecords>
+  <srw:records>
+    <srw:record>
+      <srw:recordData>
+        <record>
+          <controlfield tag="001">039569357</controlfield>
+          <controlfield tag="003">http://www.sudoc.fr/039569357</controlfield>
+          <datafield tag="011">
+            <subfield code="a">0395-2037</subfield>
+          </datafield>
+          <datafield tag="200">
+            <subfield code="a">Le Monde</subfield>
+          </datafield>
+          <datafield tag="210">
+            <subfield code="c">Le Monde</subfield>
+            <subfield code="d">1944</subfield>
+          </datafield>
+          <datafield tag="101">
+            <subfield code="a">fre</subfield>
+          </datafield>
+        </record>
+      </srw:recordData>
+    </srw:record>
+  </srw:records>
+</srw:searchRetrieveResponse>

@@ -6,6 +6,15 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+- Recherche bibliographique par ISSN français (BnF, SUDOC) en plus de l'ISBN : le champ de recherche existant détecte automatiquement le type d'identifiant (8 chiffres = ISSN, 10/13 = ISBN) ; OpenLibrary et Google Books, qui n'indexent pas l'ISSN, sont exclus de la recherche dans ce cas, de même que la recherche de couverture
+
+### Changed
+- La couverture envoyée comme cover de page Notion privilégie désormais l'image OpenLibrary haute résolution (`-L`) reconstruite depuis l'OLID de l'édition (repli sur l'ISBN, puis sur la vignette affichée si aucune des deux n'est une couverture OpenLibrary)
+
+### Fixed
+- Couvertures OpenLibrary fréquemment vides : l'ancienne heuristique de validation (`Content-Length > 1000`) ne détectait jamais l'absence de couverture, `covers.openlibrary.org` ne renvoyant jamais cet en-tête (réponses `chunked`) — remplacée par une vérification `Content-Type`, seul discriminant fiable entre une vraie image et le placeholder 1×1 renvoyé en HTTP 200 quand aucune couverture n'existe ; en l'absence de couverture, le formulaire reste maintenant entièrement vierge (ni image ni badge résiduel)
+
 ---
 
 ## [0.59.1] — 2026-07-17

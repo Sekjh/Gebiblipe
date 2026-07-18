@@ -1,6 +1,6 @@
 import { validateIsbn } from './isbn.js';
 import { lookupFromNotion, syncDatabaseProps, buildProps, createNotionPage, updateNotionPage } from './notion.js';
-import { resolveFromSources, fetchCover } from './fetchers.js';
+import { resolveFromSources, fetchCover, openLibraryLargeCoverUrl } from './fetchers.js';
 import { BIB_FIELDS, MERGE_KEYS } from './champs.js';
 import { detectCollection } from './ui.js';
 
@@ -47,7 +47,7 @@ export async function processIsbn(raw, cfg, engine, activeKeys) {
     await resolveFromSources(raw, current, activeKeys, engine, { stopWhenComplete: false });
 
   if (activeKeys.has('couverture') && !book.couverture) {
-    const cover = await fetchCover(raw);
+    const cover = await fetchCover(raw, { olid: sourceIds.olid });
     if (cover) {
       book.couverture = cover;
       book.fieldSources = { ...book.fieldSources, couverture: 'OL Covers' };
@@ -127,7 +127,7 @@ export async function sendRecord(record, cfg, sync) {
   const cb = id => id === 'f-collection' ? !!book.fcollection : false;
 
   const props = buildProps(get, cb, sync, { manualEntry: record.manualEntry, sourceIds: record.sourceIds });
-  const coverUrl = book.couverture || null;
+  const coverUrl = openLibraryLargeCoverUrl(book.couverture, record.sourceIds?.olid) || null;
 
   return record.pageId
     ? updateNotionPage(record.pageId, cfg, props, coverUrl)

@@ -11,10 +11,12 @@ const bnfFound  = readFileSync(join(fixturesDir, 'bnf-found.xml'),  'utf8');
 const bnfEmpty  = readFileSync(join(fixturesDir, 'bnf-empty.xml'),  'utf8');
 const sudocFound = readFileSync(join(fixturesDir, 'sudoc-found.xml'), 'utf8');
 const sudocEmpty = readFileSync(join(fixturesDir, 'sudoc-empty.xml'), 'utf8');
+const bnfIssnFound = readFileSync(join(fixturesDir, 'bnf-issn-found.xml'), 'utf8');
+const sudocIssnFound = readFileSync(join(fixturesDir, 'sudoc-issn-found.xml'), 'utf8');
 const olData    = JSON.parse(readFileSync(join(fixturesDir, 'openlibrary-response.json'), 'utf8'));
 const googleData = JSON.parse(readFileSync(join(fixturesDir, 'google-response.json'), 'utf8'));
 
-import { fetchWithTimeout, fetchBnF, fetchOpenLibrary, fetchGoogle, fetchSudoc, fetchCover, resolveFromSources } from '../../src/fetchers.js';
+import { fetchWithTimeout, fetchBnF, fetchBnfIssn, fetchOpenLibrary, fetchGoogle, fetchSudoc, fetchSudocIssn, fetchCover, openLibraryLargeCoverUrl, resolveFromSources } from '../../src/fetchers.js';
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn());
@@ -150,6 +152,65 @@ describe('fetchSudoc', () => {
   });
 });
 
+// ─── fetchBnfIssn / fetchSudocIssn ──────────────────────────────────────────
+// Structure XML/UNIMARC identique à l'ISBN (vérifié en direct sur bib.issn/isn=), requête
+// unique — pas de variantes 10/13 comme pour l'ISBN.
+
+describe('fetchBnfIssn', () => {
+  test('remplit b depuis XML BnF ISSN valide', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, text: async () => bnfIssnFound });
+    const b = { isbn: '03952037' };
+    await fetchBnfIssn('03952037', b);
+    expect(b.source).toBe('BnF ISSN');
+    expect(b.titre).toContain('Le Monde');
+    expect(b.editeur).toBe('Le Monde');
+    expect(b.dateed).toBe('1944');
+    expect(b.sourceIds.ark).toBe('https://catalogue.bnf.fr/ark:/12148/cb34378825c');
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('ne positionne pas b.source quand pas de <record>', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, text: async () => bnfEmpty });
+    const b = { isbn: '99999999' };
+    await fetchBnfIssn('99999999', b);
+    expect(b.source).toBeUndefined();
+  });
+
+  test('ne lève pas d\'exception en cas d\'erreur réseau', async () => {
+    fetch.mockRejectedValueOnce(new Error('DNS failure'));
+    const b = { isbn: '03952037' };
+    await expect(fetchBnfIssn('03952037', b)).resolves.toBeUndefined();
+    expect(b.source).toBeUndefined();
+  });
+});
+
+describe('fetchSudocIssn', () => {
+  test('remplit b depuis XML SUDOC ISSN valide', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, text: async () => sudocIssnFound });
+    const b = { isbn: '03952037' };
+    await fetchSudocIssn('03952037', b);
+    expect(b.source).toBe('SUDOC ISSN');
+    expect(b.titre).toBe('Le Monde');
+    expect(b.editeur).toBe('Le Monde');
+    expect(b.sourceIds.ppn).toBe('039569357');
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test('ne positionne pas b.source quand pas de <record>', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, text: async () => sudocEmpty });
+    const b = { isbn: '99999999' };
+    await fetchSudocIssn('99999999', b);
+    expect(b.source).toBeUndefined();
+  });
+
+  test('ne lève pas d\'exception en cas d\'erreur réseau', async () => {
+    fetch.mockRejectedValueOnce(new Error('DNS failure'));
+    const b = { isbn: '03952037' };
+    await expect(fetchSudocIssn('03952037', b)).resolves.toBeUndefined();
+    expect(b.source).toBeUndefined();
+  });
+});
+
 // ─── fetchOpenLibrary ────────────────────────────────────────────────────────
 
 describe('fetchOpenLibrary', () => {
@@ -220,21 +281,24 @@ describe('fetchGoogle', () => {
 });
 
 // ─── fetchCover ──────────────────────────────────────────────────────────────
+// covers.openlibrary.org ne renvoie jamais d'en-tête Content-Length (réponses chunked, vérifié en
+// direct) : le discriminant fiable "vraie couverture vs. placeholder 1×1" est Content-Type, présent
+// ("image/jpeg") uniquement pour une vraie image.
 
 describe('fetchCover', () => {
-  test('retourne l\'URL quand content-length > 1000', async () => {
+  test('retourne l\'URL quand Content-Type: image/*', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
-      headers: { get: () => '5000' },
+      headers: { get: (h) => h === 'content-type' ? 'image/jpeg' : null },
     });
     const url = await fetchCover('9782070360024');
     expect(url).toMatch(/openlibrary\.org/);
   });
 
-  test('retourne null quand content-length <= 1000 (image placeholder)', async () => {
+  test('retourne null quand Content-Type est absent (placeholder 1×1, HTTP 200)', async () => {
     fetch.mockResolvedValue({
       ok: true,
-      headers: { get: () => '800' },
+      headers: { get: () => null },
     });
     const url = await fetchCover('9782070360024');
     expect(url).toBeNull();
@@ -246,22 +310,76 @@ describe('fetchCover', () => {
     expect(url).toBeNull();
   });
 
-  test('retourne null quand content-length est null (utilise la valeur par défaut 9999 → > 1000)', async () => {
+  test('retourne null quand res.ok est false même avec un Content-Type image', async () => {
     fetch.mockResolvedValueOnce({
-      ok: true,
-      headers: { get: () => null },
+      ok: false,
+      headers: { get: (h) => h === 'content-type' ? 'image/jpeg' : null },
     });
     const url = await fetchCover('9782070360024');
-    expect(url).toMatch(/openlibrary\.org/);
+    expect(url).toBeNull();
   });
 
   test('accepte un ISBN-10 en entrée et retente en ISBN-13 si besoin', async () => {
     fetch
-      .mockResolvedValueOnce({ ok: true, headers: { get: () => '800' } })
-      .mockResolvedValueOnce({ ok: true, headers: { get: () => '5000' } });
+      .mockResolvedValueOnce({ ok: true, headers: { get: () => null } })
+      .mockResolvedValueOnce({ ok: true, headers: { get: (h) => h === 'content-type' ? 'image/jpeg' : null } });
     const url = await fetchCover('2070360024');
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(url).toContain('9782070360024');
+  });
+
+  test('essaie le candidat OLID après les candidats ISBN quand fourni', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, headers: { get: () => null } }) // ISBN-13
+      .mockResolvedValueOnce({ ok: true, headers: { get: () => null } }) // ISBN-10
+      .mockResolvedValueOnce({ ok: true, headers: { get: (h) => h === 'content-type' ? 'image/jpeg' : null } }); // OLID
+    const url = await fetchCover('9782070360024', { olid: 'OL7358935M' });
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(url).toBe('https://covers.openlibrary.org/b/olid/OL7358935M-M.jpg');
+  });
+
+  test('sans ISBN, utilise uniquement le candidat OLID', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, headers: { get: (h) => h === 'content-type' ? 'image/jpeg' : null } });
+    const url = await fetchCover('', { olid: 'OL7358935M' });
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(url).toBe('https://covers.openlibrary.org/b/olid/OL7358935M-M.jpg');
+  });
+
+  test('sans ISBN ni OLID, ne fait aucun appel réseau et retourne null', async () => {
+    const url = await fetchCover('');
+    expect(fetch).not.toHaveBeenCalled();
+    expect(url).toBeNull();
+  });
+});
+
+// ─── openLibraryLargeCoverUrl ───────────────────────────────────────────────
+// Reconstruction pure (sans réseau) de l'URL -L à partir d'une couverture -S/-M déjà validée —
+// OpenLibrary génère les 3 tailles depuis la même image stockée.
+
+describe('openLibraryLargeCoverUrl', () => {
+  test('reconstruit depuis l\'OLID quand connu, quelle que soit l\'URL -M d\'origine', () => {
+    const url = openLibraryLargeCoverUrl('https://covers.openlibrary.org/b/isbn/9782070360024-M.jpg', 'OL7358935M');
+    expect(url).toBe('https://covers.openlibrary.org/b/olid/OL7358935M-L.jpg');
+  });
+
+  test('sans OLID, remplace le suffixe -M par -L sur l\'URL existante', () => {
+    const url = openLibraryLargeCoverUrl('https://covers.openlibrary.org/b/isbn/9782070360024-M.jpg');
+    expect(url).toBe('https://covers.openlibrary.org/b/isbn/9782070360024-L.jpg');
+  });
+
+  test('sans OLID, remplace le suffixe -S par -L', () => {
+    const url = openLibraryLargeCoverUrl('https://covers.openlibrary.org/b/id/15155844-S.jpg');
+    expect(url).toBe('https://covers.openlibrary.org/b/id/15155844-L.jpg');
+  });
+
+  test('couverture non-OpenLibrary (ex. Google Books) retournée inchangée', () => {
+    const url = openLibraryLargeCoverUrl('https://books.google.com/books/content?id=abc123', 'OL7358935M');
+    expect(url).toBe('https://books.google.com/books/content?id=abc123');
+  });
+
+  test('URL vide/nulle → null', () => {
+    expect(openLibraryLargeCoverUrl('')).toBeNull();
+    expect(openLibraryLargeCoverUrl(null)).toBeNull();
   });
 });
 
@@ -319,5 +437,32 @@ describe('resolveFromSources', () => {
     expect(result.foundByAnySource).toBe(false);
     expect(result.contributedFields).toEqual([]);
     expect(result.book.titre).toBe('');
+  });
+
+  test('idType: "issn" n\'interroge que BnF et SUDOC (pas OpenLibrary/Google)', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfIssnFound })
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocIssnFound });
+    const activeKeys = new Set(['editeur', 'dateed']);
+    const empty = { isbn: '03952037', source: '' };
+
+    const result = await resolveFromSources('03952037', empty, activeKeys, 'bnf', { stopWhenComplete: false, idType: 'issn' });
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(result.searchLog.map(e => e.source)).toEqual(['BnF ISSN', 'SUDOC ISSN']);
+    expect(result.book.titre).toContain('Le Monde');
+  });
+
+  test('idType: "issn" respecte le moteur préféré "sudoc" en tête', async () => {
+    fetch
+      .mockResolvedValueOnce({ ok: true, text: async () => sudocIssnFound })
+      .mockResolvedValueOnce({ ok: true, text: async () => bnfEmpty });
+    const activeKeys = new Set(['editeur', 'dateed']);
+    const empty = { isbn: '03952037', source: '' };
+
+    await resolveFromSources('03952037', empty, activeKeys, 'sudoc', { stopWhenComplete: false, idType: 'issn' });
+
+    expect(fetch.mock.calls[0][0]).toContain('sudoc.abes.fr');
+    expect(fetch.mock.calls[1][0]).toContain('catalogue.bnf.fr');
   });
 });

@@ -1,6 +1,6 @@
 import { initThemes, lookup, updateSousTheme, toggleLu, toggleDevlog, suggestTheme, generateFiche, toggleSourcePopover, getLastIsbn, setLastIsbn, fillFormFromNotion, setStatus, complementFromSources, renderBibFieldsCard, toggleBibFieldsPanel, saveBibFieldsConfig, startManualEntry, toggleBulkImportPanel, renderBulkInvalidLines, initBulkResultsTable, appendBulkResultRow, getCheckedBulkIndices, setBulkRowSendStatus } from './ui.js';
 import { sendToNotion, saveConfig, toggleConfig, lookupFromNotion, setCurrentPageId, clearCurrentPageId, getCurrentPageId, updateConfigWarning } from './notion.js';
-import { validateIsbn } from './isbn.js';
+import { validateIdentifier } from './isbn.js';
 import { getConfig, getMissingConfigKeys } from './config.js';
 import { getActiveBibFields } from './champs.js';
 import { parseIsbnList, processFile, sendBatch } from './bulkImport.js';
@@ -22,8 +22,8 @@ renderBibFieldsCard();
 async function startSearch(isbn) {
   const raw = isbn.trim().replace(/[-\s]/g, '');
   if (!raw) return;
-  if (!validateIsbn(raw)) {
-    setStatus('⚠️ ISBN invalide — vérifie le numéro (chiffre de contrôle incorrect).');
+  if (!validateIdentifier(raw)) {
+    setStatus('⚠️ ISBN/ISSN invalide — vérifie le numéro (chiffre de contrôle incorrect).');
     return;
   }
   setLastIsbn(raw);

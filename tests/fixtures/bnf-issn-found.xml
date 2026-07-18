@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<searchRetrieveResponse xmlns="http://www.loc.gov/zing/srw/">
+  <numberOfRecords>1</numberOfRecords>
+  <records>
+    <record>
+      <recordData>
+        <record xmlns="http://www.bnf.fr/namespace/bibframe">
+          <controlfield tag="003">https://catalogue.bnf.fr/ark:/12148/cb34378825c</controlfield>
+          <datafield tag="011">
+            <subfield code="a">0395-2037</subfield>
+          </datafield>
+          <datafield tag="200">
+            <subfield code="a">Le Monde</subfield>
+            <subfield code="f">directeur Hubert Beuve-Méry</subfield>
+          </datafield>
+          <datafield tag="210">
+            <subfield code="c">Le Monde</subfield>
+            <subfield code="d">1944</subfield>
+          </datafield>
+          <datafield tag="101">
+            <subfield code="a">fre</subfield>
+          </datafield>
+        </record>
+      </recordData>
+    </record>
+  </records>
+</searchRetrieveResponse>

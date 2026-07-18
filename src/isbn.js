@@ -13,6 +13,37 @@ export function validateIsbn(isbn) {
   return false;
 }
 
+// ISSN : 8 chiffres, poids 8→2 sur les 7 premiers, chiffre de contrôle mod 11 (X = 10).
+export function validateIssn(issn) {
+  if (issn.length !== 8) return false;
+  let sum = 0;
+  for (let i = 0; i < 7; i++) {
+    const digit = parseInt(issn[i]);
+    if (Number.isNaN(digit)) return false;
+    sum += digit * (8 - i);
+  }
+  const check = (11 - (sum % 11)) % 11;
+  const expected = check === 10 ? 'X' : String(check);
+  return issn[7].toUpperCase() === expected;
+}
+
+// Distingue ISBN (10/13 chiffres) et ISSN (8 chiffres) à partir de la seule longueur — les deux
+// identifiants n'ont pas de plage de chiffres qui se recoupe, la longueur suffit à les distinguer.
+export function identifierType(raw) {
+  if (raw.length === 8) return 'issn';
+  if (raw.length === 10 || raw.length === 13) return 'isbn';
+  return null;
+}
+
+// Point d'entrée unique de validation pour les écrans de recherche (ISBN ou ISSN) — évite de
+// dupliquer l'aiguillage identifierType()/validateIsbn()/validateIssn() dans chaque appelant.
+export function validateIdentifier(raw) {
+  const type = identifierType(raw);
+  if (type === 'issn') return validateIssn(raw);
+  if (type === 'isbn') return validateIsbn(raw);
+  return false;
+}
+
 export function isbn13to10(isbn13) {
   if (!isbn13.startsWith('978') || isbn13.length !== 13) return null;
   const core = isbn13.slice(3, 12);

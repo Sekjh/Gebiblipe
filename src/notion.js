@@ -3,6 +3,7 @@ import { getExpectedProps, propSchema } from './themes.js';
 import { getActiveBibFields, PIVOT_FIELDS } from './champs.js';
 import { getSourceIds, isManualEntry } from './ui.js';
 import { APP_VERSION } from './version.js';
+import { openLibraryLargeCoverUrl } from './fetchers.js';
 
 // Mode création (null) ou mise à jour (pageId de la page existante)
 let _currentPageId = null;
@@ -323,6 +324,15 @@ function coverUrlFromDom() {
   return (coverImg.src && coverImg.style.display !== 'none') ? coverImg.src : null;
 }
 
+// Couverture envoyée comme cover de page Notion : reconstruit l'image OpenLibrary haute résolution
+// (-L) depuis la vignette (-S/-M) déjà affichée et validée dans le formulaire, en préférant l'OLID
+// (édition précisément identifiée) quand connu. Pas de nouvel appel réseau — voir
+// openLibraryLargeCoverUrl() dans fetchers.js. Une couverture non-OpenLibrary (Google Books) ou
+// l'absence de couverture sont transmises telles quelles.
+export function resolveNotionCoverUrl() {
+  return openLibraryLargeCoverUrl(coverUrlFromDom(), getSourceIds().olid);
+}
+
 export async function updatePageFull(pageId, cfg, sync) {
   const get = id => document.getElementById(id)?.value?.trim() || '';
   const cb  = id => document.getElementById(id)?.checked || false;
@@ -330,7 +340,7 @@ export async function updatePageFull(pageId, cfg, sync) {
   notionStatus.textContent = '🔄 Mise à jour en cours…';
 
   const props = buildProps(get, cb, sync);
-  const result = await updateNotionPage(pageId, cfg, props, coverUrlFromDom());
+  const result = await updateNotionPage(pageId, cfg, props, resolveNotionCoverUrl());
 
   if (result.ok) {
     notionStatus.textContent = '✅ Mis à jour dans Notion !';
@@ -353,7 +363,7 @@ export async function doSend(cfg, sync) {
   notionStatus.textContent = '🔄 Envoi en cours…';
 
   const props = buildProps(get, cb, sync);
-  const result = await createNotionPage(cfg, props, coverUrlFromDom());
+  const result = await createNotionPage(cfg, props, resolveNotionCoverUrl());
 
   if (result.ok) {
     notionStatus.textContent = '✅ Ajouté dans Notion !' + syncMsg;

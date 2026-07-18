@@ -21,28 +21,65 @@ export function fetchWithTimeout(url, options = {}, ms = 5000) {
   return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(tid));
 }
 
+// Extraction des champs UNIMARC communs à BnF et SUDOC (SRU) — les deux catalogues renvoient la
+// même structure de notice (datafield/subfield) pour l'ISBN comme pour l'ISSN, seul le contexte
+// de requête (bib.isbn/isb= vs bib.issn/isn=) diffère.
+function parseUnimarcFields(rec, { appendSubtitle = false } = {}) {
+  const gf = (tag,sub) => { const el=rec.querySelector(`datafield[tag="${tag}"] subfield[code="${sub}"]`); return el?el.textContent.trim():''; };
+  const gfa = (tag,sub) => Array.from(rec.querySelectorAll(`datafield[tag="${tag}"] subfield[code="${sub}"]`)).map(e=>e.textContent.trim());
+  const fields = {};
+  fields.titre = gf('200','a');
+  if (appendSubtitle) { const esub = gf('200','e'); if (esub && fields.titre) fields.titre += ' — ' + esub; }
+  const na=gfa('700','a'), nb=gfa('700','b');
+  fields.auteur = na.map((a,i)=>nb[i]?nb[i]+' '+a:a).join(', ');
+  if (!fields.auteur) {
+    const na2=gfa('701','a'), nb2=gfa('701','b');
+    fields.auteur = na2.map((a,i)=>nb2[i]?nb2[i]+' '+a:a).join(', ');
+  }
+  fields.editeur = gf('210','c')||gf('214','c');
+  fields.dateed = gf('210','d')||gf('214','d');
+  fields.collection = gf('225','a');
+  fields.pages = gf('215','a');
+  const lang = gf('101','a');
+  if (lang) fields.language = normalizeLanguage(lang);
+  return fields;
+}
+
+// Interroge un endpoint SRU/UNIMARC (BnF ou SUDOC), fusionne les champs extraits dans `b` et
+// capture l'identifiant pivot (ARK pour BnF, PPN pour SUDOC). Retourne true si une notice avec
+// titre a été trouvée — utilisé aussi bien pour les requêtes ISBN (avec retry de variantes) que
+// ISSN (requête unique, pas de variante 10/13).
+async function fetchUnimarcSru(url, b, { sourceLabel, pivotTag, pivotKey, appendSubtitle = false }) {
+  const xml = await fetchWithTimeout(url).then(r => r.text());
+  const doc = new DOMParser().parseFromString(xml, 'text/xml');
+  const rec = doc.querySelector('record');
+  if (!rec) return false;
+  Object.assign(b, parseUnimarcFields(rec, { appendSubtitle }));
+  const pivot = rec.querySelector(`controlfield[tag="${pivotTag}"]`)?.textContent?.trim();
+  if (pivot) { b.sourceIds = b.sourceIds || {}; b.sourceIds[pivotKey] = pivot; }
+  if (b.titre) { b.source = sourceLabel; return true; }
+  return false;
+}
+
 export async function fetchBnF(raw, b) {
   const isbns = isbnVariants(raw);
-
   for (const isbn of isbns) {
     try {
-      const xml = await fetchWithTimeout(`https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&query=bib.isbn+adj+"${isbn}"&recordSchema=unimarcxchange&maximumRecords=1`).then(r=>r.text());
-      const doc = new DOMParser().parseFromString(xml,'text/xml');
-      const rec = doc.querySelector('record');
-      if (!rec) continue;
-      const gf = (tag,sub) => { const el=rec.querySelector(`datafield[tag="${tag}"] subfield[code="${sub}"]`); return el?el.textContent.trim():''; };
-      const gfa = (tag,sub) => Array.from(rec.querySelectorAll(`datafield[tag="${tag}"] subfield[code="${sub}"]`)).map(e=>e.textContent.trim());
-      b.titre = gf('200','a'); const esub=gf('200','e'); if(esub&&b.titre) b.titre+=' — '+esub;
-      const na=gfa('700','a'),nb=gfa('700','b'); b.auteur=na.map((a,i)=>nb[i]?nb[i]+' '+a:a).join(', ');
-      if(!b.auteur){const na2=gfa('701','a'),nb2=gfa('701','b');b.auteur=na2.map((a,i)=>nb2[i]?nb2[i]+' '+a:a).join(', ');}
-      b.editeur=gf('210','c')||gf('214','c'); b.dateed=gf('210','d')||gf('214','d');
-      b.collection=gf('225','a'); b.pages=gf('215','a');
-      const lang = gf('101','a'); if (lang) b.language = normalizeLanguage(lang);
-      const ark = rec.querySelector('controlfield[tag="003"]')?.textContent?.trim();
-      if (ark) { b.sourceIds = b.sourceIds || {}; b.sourceIds.ark = ark; }
-      if(b.titre) { b.source = 'BnF ' + (isbn.length === 13 ? 'ISBN-13' : 'ISBN-10'); return; }
+      const url = `https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&query=bib.isbn+adj+"${isbn}"&recordSchema=unimarcxchange&maximumRecords=1`;
+      const found = await fetchUnimarcSru(url, b, {
+        sourceLabel: 'BnF ' + (isbn.length === 13 ? 'ISBN-13' : 'ISBN-10'),
+        pivotTag: '003', pivotKey: 'ark', appendSubtitle: true,
+      });
+      if (found) return;
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
+}
+
+export async function fetchBnfIssn(raw, b) {
+  try {
+    const url = `https://catalogue.bnf.fr/api/SRU?version=1.2&operation=searchRetrieve&query=bib.issn+adj+"${raw}"&recordSchema=unimarcxchange&maximumRecords=1`;
+    await fetchUnimarcSru(url, b, { sourceLabel: 'BnF ISSN', pivotTag: '003', pivotKey: 'ark', appendSubtitle: true });
+  } catch { /* swallow: erreur réseau ou timeout */ }
 }
 
 export async function fetchOpenLibrary(raw, b) {
@@ -73,27 +110,25 @@ export async function fetchOpenLibrary(raw, b) {
 
 export async function fetchSudoc(raw, b) {
   const isbns = isbnVariants(raw);
-
   for (const isbn of isbns) {
     try {
       const query = encodeURIComponent(`isb=${isbn}`);
-      const xml = await fetchWithTimeout(`https://www.sudoc.abes.fr/cbs/sru?version=1.1&operation=searchRetrieve&query=${query}&recordSchema=unimarc&maximumRecords=1`).then(r=>r.text());
-      const doc = new DOMParser().parseFromString(xml,'text/xml');
-      const rec = doc.querySelector('record');
-      if (!rec) continue;
-      const gf = (tag,sub) => { const el=rec.querySelector(`datafield[tag="${tag}"] subfield[code="${sub}"]`); return el?el.textContent.trim():''; };
-      const gfa = (tag,sub) => Array.from(rec.querySelectorAll(`datafield[tag="${tag}"] subfield[code="${sub}"]`)).map(e=>e.textContent.trim());
-      b.titre = gf('200','a');
-      const na=gfa('700','a'),nb=gfa('700','b'); b.auteur=na.map((a,i)=>nb[i]?nb[i]+' '+a:a).join(', ');
-      if(!b.auteur){const na2=gfa('701','a'),nb2=gfa('701','b');b.auteur=na2.map((a,i)=>nb2[i]?nb2[i]+' '+a:a).join(', ');}
-      b.editeur=gf('210','c')||gf('214','c'); b.dateed=gf('210','d')||gf('214','d');
-      b.collection=gf('225','a'); b.pages=gf('215','a');
-      const lang = gf('101','a'); if (lang) b.language = normalizeLanguage(lang);
-      const ppn = rec.querySelector('controlfield[tag="001"]')?.textContent?.trim();
-      if (ppn) { b.sourceIds = b.sourceIds || {}; b.sourceIds.ppn = ppn; }
-      if(b.titre) { b.source = 'SUDOC ' + (isbn.length === 13 ? 'ISBN-13' : 'ISBN-10'); return; }
+      const url = `https://www.sudoc.abes.fr/cbs/sru?version=1.1&operation=searchRetrieve&query=${query}&recordSchema=unimarc&maximumRecords=1`;
+      const found = await fetchUnimarcSru(url, b, {
+        sourceLabel: 'SUDOC ' + (isbn.length === 13 ? 'ISBN-13' : 'ISBN-10'),
+        pivotTag: '001', pivotKey: 'ppn',
+      });
+      if (found) return;
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
+}
+
+export async function fetchSudocIssn(raw, b) {
+  try {
+    const query = encodeURIComponent(`isn=${raw}`);
+    const url = `https://www.sudoc.abes.fr/cbs/sru?version=1.1&operation=searchRetrieve&query=${query}&recordSchema=unimarc&maximumRecords=1`;
+    await fetchUnimarcSru(url, b, { sourceLabel: 'SUDOC ISSN', pivotTag: '001', pivotKey: 'ppn' });
+  } catch { /* swallow: erreur réseau ou timeout */ }
 }
 
 export async function fetchGoogle(raw, b) {
@@ -108,31 +143,58 @@ export async function fetchGoogle(raw, b) {
   if(b.titre) b.source='Google Books';
 }
 
-export async function fetchCover(raw) {
-  const isbns = isbnVariants(raw);
-  for (const isbn of isbns) {
-    const url = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
+// Détecte une vraie image de couverture renvoyée par covers.openlibrary.org. Le service ne renvoie
+// JAMAIS d'en-tête Content-Length (réponses en Transfer-Encoding: chunked), y compris pour une
+// couverture existante — un test basé sur content-length est donc inopérant (vérifié en direct).
+// Le discriminant fiable est Content-Type : présent ("image/jpeg") pour une vraie couverture,
+// absent pour le placeholder 1×1 renvoyé (avec un HTTP 200) quand aucune couverture n'existe.
+export function isCoverImageResponse(res) {
+  return res.ok && (res.headers.get('content-type') || '').startsWith('image/');
+}
+
+// Essaie les variantes ISBN puis, si connu, l'OLID de l'édition (capturé par fetchOpenLibrary dans
+// b.sourceIds.olid) — augmente le taux de succès quand la liaison OL ISBN→cover échoue mais que la
+// liaison OLID→cover existe (ou l'inverse). Retourne la première URL de vignette (-M) validée.
+export async function fetchCover(raw, { olid } = {}) {
+  const isbnCandidates = raw ? isbnVariants(raw).map(isbn => `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`) : [];
+  const candidates = olid ? [...isbnCandidates, `https://covers.openlibrary.org/b/olid/${olid}-M.jpg`] : isbnCandidates;
+  for (const url of candidates) {
     try {
-      const res = await fetch(url, { method: 'HEAD' });
-      if (res.ok && parseInt(res.headers.get('content-length') || '9999') > 1000) {
-        return url;
-      }
+      const res = await fetchWithTimeout(url, { method: 'HEAD' });
+      if (isCoverImageResponse(res)) return url;
     } catch { /* swallow: erreur réseau ou timeout */ }
   }
   return null;
 }
 
+// Reconstruit une URL de couverture OpenLibrary en haute résolution (-L), sans nouvel appel réseau :
+// OpenLibrary génère les tailles S/M/L à partir de la même image stockée, donc si une vignette -S/-M
+// a déjà été validée (par fetchCover ou fetchOpenLibrary), -L existe forcément. Préfère l'OLID
+// (édition précisément identifiée) quand connu, sinon reconstruit depuis l'URL déjà obtenue. Une
+// couverture qui ne vient pas d'OpenLibrary (ex. Google Books) est retournée telle quelle.
+export function openLibraryLargeCoverUrl(coverUrl, olid) {
+  if (!coverUrl) return null;
+  if (!/covers\.openlibrary\.org/.test(coverUrl)) return coverUrl;
+  if (olid) return `https://covers.openlibrary.org/b/olid/${olid}-L.jpg`;
+  return coverUrl.replace(/-[SM]\.jpg(\?.*)?$/i, '-L.jpg$1');
+}
+
 // Registre unique des sources bibliographiques — pilote l'ordre de préférence dans
 // resolveFromSources() (le moteur préféré passe en tête, les autres suivent dans cet ordre fixe).
+// OpenLibrary et Google Books n'indexent pas l'ISSN : seules BnF et SUDOC sont utilisables pour
+// idType 'issn'.
 const FETCHER_REGISTRY = [
-  { engine: 'bnf',         fn: fetchBnF,         name: 'BnF' },
-  { engine: 'openlibrary', fn: fetchOpenLibrary, name: 'OpenLibrary' },
-  { engine: 'google',      fn: fetchGoogle,      name: 'Google Books' },
-  { engine: 'sudoc',       fn: fetchSudoc,       name: 'SUDOC' },
+  { engine: 'bnf',         idType: 'isbn', fn: fetchBnF,         name: 'BnF' },
+  { engine: 'openlibrary', idType: 'isbn', fn: fetchOpenLibrary, name: 'OpenLibrary' },
+  { engine: 'google',      idType: 'isbn', fn: fetchGoogle,      name: 'Google Books' },
+  { engine: 'sudoc',       idType: 'isbn', fn: fetchSudoc,       name: 'SUDOC' },
+  { engine: 'bnf',         idType: 'issn', fn: fetchBnfIssn,     name: 'BnF' },
+  { engine: 'sudoc',       idType: 'issn', fn: fetchSudocIssn,   name: 'SUDOC' },
 ];
-function orderedFetchers(engine) {
-  const first = FETCHER_REGISTRY.find(f => f.engine === engine) || FETCHER_REGISTRY[0];
-  return [first, ...FETCHER_REGISTRY.filter(f => f !== first)];
+function orderedFetchers(engine, idType) {
+  const pool = FETCHER_REGISTRY.filter(f => f.idType === idType);
+  const first = pool.find(f => f.engine === engine) || pool[0];
+  return [first, ...pool.filter(f => f !== first)];
 }
 
 // Interroge les sources bibliographiques (dans l'ordre de préférence du moteur choisi) et fusionne
@@ -140,6 +202,7 @@ function orderedFetchers(engine) {
 // d'écrasement d'une valeur déjà présente (utile pour compléter une fiche partiellement remplie,
 // venue de Notion ou déjà éditée). `activeKeys` restreint les champs bibliographiques ciblés aux
 // champs actuellement activés dans la configuration (voir getActiveBibFields() dans champs.js).
+// `idType` ('isbn' par défaut, ou 'issn') sélectionne le sous-ensemble de sources pertinentes.
 //
 // stopWhenComplete (true par défaut) arrête d'interroger les sources suivantes dès que tous les
 // champs cibles sont remplis — comportement historique du formulaire unitaire (lookup()/
@@ -147,7 +210,7 @@ function orderedFetchers(engine) {
 // contraire toujours interroger les 4 sources pour rafraîchir les identifiants pivots même quand
 // les champs bibliographiques sont déjà complets (une source peut apporter un identifiant pivot
 // sans contribuer à aucun champ bibliographique) : passer stopWhenComplete: false dans ce cas.
-export async function resolveFromSources(raw, current, activeKeys, engine, { stopWhenComplete = true } = {}) {
+export async function resolveFromSources(raw, current, activeKeys, engine, { stopWhenComplete = true, idType = 'isbn' } = {}) {
   const book = { ...current, isbn: raw };
   for (const key of MERGE_KEYS) if (!book[key]) book[key] = '';
   book.fieldSources = { ...(current.fieldSources || {}) };
@@ -156,7 +219,8 @@ export async function resolveFromSources(raw, current, activeKeys, engine, { sto
   const contributedFields = [];
   const sources = [];
 
-  const fetchers = orderedFetchers(engine).map(f => f.fn);
+  const orderedEntries = orderedFetchers(engine, idType);
+  const fetchers = orderedEntries.map(f => f.fn);
   const fetcherNames = new Map(FETCHER_REGISTRY.map(f => [f.fn, f.name]));
   const targetFields = ['titre', 'auteur', ...BIB_FIELDS.filter(f => !f.isCover).map(f => f.key)]
     .filter(f => f === 'titre' || f === 'auteur' || activeKeys.has(f));

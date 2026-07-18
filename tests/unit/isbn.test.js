@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { validateIsbn, isbn13to10, isbn10to13, isbnVariants } from '../../src/isbn.js';
+import { validateIsbn, isbn13to10, isbn10to13, isbnVariants, validateIssn, identifierType, validateIdentifier } from '../../src/isbn.js';
 
 describe('validateIsbn', () => {
   test('ISBN-13 valide (Proust Pléiade)', () => {
@@ -76,6 +76,76 @@ describe('isbn10to13', () => {
 
   test('chaîne vide → null', () => {
     expect(isbn10to13('')).toBe(null);
+  });
+});
+
+describe('validateIssn', () => {
+  test('ISSN valide (0395-2037, Le Monde)', () => {
+    expect(validateIssn('03952037')).toBe(true);
+  });
+
+  test('ISSN valide avec chiffre de contrôle X (1050-124X)', () => {
+    expect(validateIssn('1050124X')).toBe(true);
+  });
+
+  test('ISSN valide avec x minuscule accepté', () => {
+    expect(validateIssn('1050124x')).toBe(true);
+  });
+
+  test('ISSN chiffre de contrôle incorrect', () => {
+    expect(validateIssn('03952038')).toBe(false);
+  });
+
+  test('longueur incorrecte (7 chiffres) → false', () => {
+    expect(validateIssn('3952037')).toBe(false);
+  });
+
+  test('longueur incorrecte (9 chiffres) → false', () => {
+    expect(validateIssn('039520371')).toBe(false);
+  });
+
+  test('caractère non numérique dans les 7 premiers → false', () => {
+    expect(validateIssn('039A2037')).toBe(false);
+  });
+
+  test('chaîne vide → false', () => {
+    expect(validateIssn('')).toBe(false);
+  });
+});
+
+describe('identifierType', () => {
+  test('8 chiffres → issn', () => {
+    expect(identifierType('03952037')).toBe('issn');
+  });
+
+  test('10 chiffres → isbn', () => {
+    expect(identifierType('2070360024')).toBe('isbn');
+  });
+
+  test('13 chiffres → isbn', () => {
+    expect(identifierType('9782070360024')).toBe('isbn');
+  });
+
+  test('longueur non reconnue → null', () => {
+    expect(identifierType('123')).toBe(null);
+  });
+});
+
+describe('validateIdentifier', () => {
+  test('ISBN-13 valide reconnu', () => {
+    expect(validateIdentifier('9782070360024')).toBe(true);
+  });
+
+  test('ISSN valide reconnu', () => {
+    expect(validateIdentifier('03952037')).toBe(true);
+  });
+
+  test('ISSN avec chiffre de contrôle incorrect → false', () => {
+    expect(validateIdentifier('03952038')).toBe(false);
+  });
+
+  test('longueur non reconnue → false', () => {
+    expect(validateIdentifier('123')).toBe(false);
   });
 });
 
