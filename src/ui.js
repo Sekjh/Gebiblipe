@@ -4,6 +4,7 @@ import { fetchCover, resolveFromSources } from './fetchers.js';
 import { callClaude } from './claude.js';
 import { MANDATORY_FIELDS, BIB_FIELDS, PIVOT_FIELDS, MERGE_KEYS, getActiveBibFields } from './champs.js';
 import { getEnabledBibFields, setEnabledBibFields } from './config.js';
+import { showToast } from './toast.js';
 
 let _searchLog = [];
 export function getSearchLog() { return _searchLog; }
@@ -43,6 +44,35 @@ function sourceColorClass(source = '') {
 
 export function setStatus(msg) {
   document.getElementById('status').textContent = msg;
+}
+
+// Affiche/masque #cover-img + #cover-src-badge selon la présence d'une couverture — logique
+// unique partagée par fillForm (sourceTag 'prefilled') et fillFormFromNotion ('notion-filled'),
+// pour éviter toute divergence entre les deux chemins de chargement.
+function renderCover(b, sourceTag) {
+  const img = document.getElementById('cover-img');
+  const coverBadge = document.getElementById('cover-src-badge');
+  const coverActive = getActiveBibFields().some(f => f.key === 'couverture');
+  img.classList.remove('prefilled', 'notion-filled');
+  if (coverActive && b.couverture) {
+    img.src = b.couverture;
+    img.style.display = 'block';
+    img.classList.add(sourceTag);
+    if (coverBadge) {
+      if (sourceTag === 'notion-filled') {
+        coverBadge.textContent = 'Notion';
+      } else {
+        coverBadge.textContent = shortSource(b.fieldSources?.couverture || '');
+        coverBadge.classList.remove(...SOURCE_COLOR_CLASSES);
+        const colorClass = sourceColorClass(b.fieldSources?.couverture || '');
+        if (colorClass) coverBadge.classList.add(colorClass);
+      }
+    }
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    if (coverBadge) coverBadge.textContent = '';
+  }
 }
 
 export function setField(id, val) {
@@ -184,21 +214,7 @@ export function fillForm(b) {
     }
   }
 
-  const img = document.getElementById('cover-img');
-  const coverBadge = document.getElementById('cover-src-badge');
-  const coverActive = getActiveBibFields().some(f => f.key === 'couverture');
-  if (coverActive && b.couverture) {
-    img.src = b.couverture; img.style.display = 'block'; img.classList.add('prefilled');
-    if (coverBadge) {
-      coverBadge.textContent = shortSource(b.fieldSources?.couverture || '');
-      coverBadge.classList.remove(...SOURCE_COLOR_CLASSES);
-      const colorClass = sourceColorClass(b.fieldSources?.couverture || '');
-      if (colorClass) coverBadge.classList.add(colorClass);
-    }
-  } else {
-    img.src = ''; img.style.display = 'none'; img.classList.remove('prefilled', 'notion-filled');
-    if (coverBadge) coverBadge.textContent = '';
-  }
+  renderCover(b, 'prefilled');
 
   const collectionHint = detectCollection(b);
   document.getElementById('f-collection').checked = collectionHint.detected;
@@ -278,21 +294,7 @@ export function fillFormFromNotion(b) {
   _manualEntry = false;
 
   // ── Couverture ──
-  const img = document.getElementById('cover-img');
-  const coverBadge = document.getElementById('cover-src-badge');
-  const coverActive = getActiveBibFields().some(f => f.key === 'couverture');
-  if (coverActive && b.couverture) {
-    img.src = b.couverture;
-    img.style.display = 'block';
-    img.classList.remove('prefilled');
-    img.classList.add('notion-filled');
-    if (coverBadge) coverBadge.textContent = 'Notion';
-  } else {
-    img.src = '';
-    img.style.display = 'none';
-    img.classList.remove('prefilled', 'notion-filled');
-    if (coverBadge) coverBadge.textContent = '';
-  }
+  renderCover(b, 'notion-filled');
 
   // ── Hint collection (informatif, sans écraser la valeur Notion) ──
   const collectionHint = detectCollection(b);
@@ -328,7 +330,14 @@ export async function lookup(isbnArg = '') {
   const { book: b, searchLog } = await resolveFromSources(raw, empty, activeKeys, engine, { stopWhenComplete: true, idType });
   b.searchLog = searchLog;
 
-  setStatus(b.titre ? '' : (idType === 'issn' ? 'ISSN introuvable — remplis manuellement.' : 'ISBN introuvable — remplis manuellement.'));
+  if (b.titre) {
+    setStatus('');
+    showToast(`✓ "${b.titre}" trouvé.`, 'success');
+  } else {
+    const notFoundMsg = idType === 'issn' ? '⚠️ Aucun résultat pour cet ISSN — remplis les champs manuellement.' : '⚠️ Aucun résultat pour cet ISBN — remplis les champs manuellement.';
+    setStatus(idType === 'issn' ? 'ISSN introuvable — remplis manuellement.' : 'ISBN introuvable — remplis manuellement.');
+    showToast(notFoundMsg, 'warning');
+  }
 
   if (idType === 'isbn' && activeKeys.has('couverture') && !b.couverture) {
     const cover = await fetchCover(raw, { olid: b.sourceIds?.olid });
@@ -380,7 +389,13 @@ Réponds UNIQUEMENT avec ce format JSON, sans texte autour :
 
   try {
     const raw = await callClaude(prompt);
-    const json = JSON.parse(raw.match(/\{.*\}/s)?.[0] || raw);
+    const match = raw.match(/\{[\s\S]*\}/);
+    let json;
+    try {
+      json = JSON.parse(match?.[0] ?? '');
+    } catch {
+      throw new Error('Réponse IA imprévue — réessaie ou choisis le thème manuellement.');
+    }
     const theme = json.theme || '';
     const sousTheme = json.sousTheme || '';
 
@@ -397,9 +412,11 @@ Réponds UNIQUEMENT avec ce format JSON, sans texte autour :
       status.textContent = `✓ Suggestion : ${theme}${sousTheme ? ' › ' + sousTheme : ''}`;
     } else {
       status.textContent = '⚠️ Suggestion hors liste — vérifie manuellement.';
+      showToast('⚠️ Suggestion de thème hors liste — vérifie manuellement.', 'warning');
     }
   } catch(e) {
     status.textContent = '🔴 ' + e.message;
+    showToast('🔴 ' + e.message, 'error');
   }
   btn.disabled = false;
 }
@@ -474,6 +491,7 @@ Commence ta réponse par "#Générée automatiquement par IA" puis une ligne vid
     status.textContent = '✓ Fiche générée — vérifie et modifie si nécessaire.';
   } catch(e) {
     status.textContent = '🔴 ' + e.message;
+    showToast('🔴 ' + e.message, 'error');
   }
   btn.disabled = false;
 }

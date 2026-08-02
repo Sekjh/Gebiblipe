@@ -6,6 +6,14 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Added
+- Alertes ponctuelles (toasts) ajoutées pour : chargement d'une fiche depuis Notion, résultat de recherche ISBN/ISSN (trouvé ou non), détection de doublon (à la recherche et à l'envoi), champs complétés depuis les sources bibliographiques, suggestion de thème hors liste, et échecs de suggestion de thème / génération de fiche par l'IA — en complément des messages de statut déjà affichés dans le formulaire, inchangés
+
+### Fixed
+- Chargement depuis Notion : le champ couverture pouvait rester affiché vide (avec le badge « Notion ») quand la fiche Notion n'a pas d'image enregistrée — logique de masquage unifiée avec la recherche ISBN classique via un helper `renderCover()` partagé
+- Bouton « Compléter les champs avec les sources bibliothéquaires » disparaissait définitivement après un premier clic au lieu de rester disponible pour de nouvelles tentatives
+- Suggestion de thème par IA : une réponse de Claude non conforme au format JSON attendu (ex. réponse en prose) faisait fuiter un message d'erreur de parsing tronqué et incompréhensible (« je », etc.) au lieu d'un message clair invitant à réessayer
+
 ---
 
 ## [0.61.0] — 2026-08-02

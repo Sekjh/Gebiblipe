@@ -4,6 +4,7 @@ import { validateIdentifier } from './isbn.js';
 import { getConfig, getMissingConfigKeys } from './config.js';
 import { getActiveBibFields } from './champs.js';
 import { parseIsbnList, processFile, sendBatch } from './bulkImport.js';
+import { showToast } from './toast.js';
 
 // Populate year select (1980 → current year)
 const sel = document.getElementById('f-datelu-annee');
@@ -51,6 +52,7 @@ function showNotionChoice(result, isbn) {
   msg.textContent = `📚 "${result.book.titre || isbn}" trouvé dans ta bibliothèque Notion.`;
   statusEl.appendChild(msg);
   statusEl.appendChild(document.createElement('br'));
+  showToast(`⚠️ "${result.book.titre || isbn}" existe déjà dans ta bibliothèque Notion.`, 'warning');
 
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;';
@@ -61,6 +63,7 @@ function showNotionChoice(result, isbn) {
   btnNotion.addEventListener('click', () => {
     setCurrentPageId(result.pageId);
     fillFormFromNotion(result.book);
+    showToast('📚 Fiche chargée depuis Notion.', 'success');
 
     // Proposer de compléter les champs vides via les sources bibliographiques —
     // positionné dans le cadre du titre plutôt que dans la zone de statut, pour rester
@@ -79,11 +82,13 @@ function showNotionChoice(result, isbn) {
         const anyFilled = await complementFromSources(isbn);
         if (anyFilled) {
           statusEl.textContent = '✓ Champs vides complétés depuis les sources.';
+          showToast('✓ Champs complétés depuis les sources bibliographiques.', 'success');
           setTimeout(() => { statusEl.textContent = ''; }, 3000);
         } else {
           statusEl.textContent = '';
         }
-        btnComplement.remove();
+        btnComplement.disabled = false;
+        btnComplement.textContent = 'Compléter les champs avec les sources bibliothéquaires';
       });
       notionActions.appendChild(btnComplement);
     }
@@ -116,6 +121,7 @@ function showDuplicateOnSendChoice(result) {
   msg.textContent = `⚠️ "${result.book.titre || 'Cette entrée'}" existe déjà dans ta bibliothèque Notion.`;
   notionStatus.appendChild(msg);
   notionStatus.appendChild(document.createElement('br'));
+  showToast(`⚠️ "${result.book.titre || 'Cette entrée'}" existe déjà — choisis une action.`, 'warning');
 
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;';
