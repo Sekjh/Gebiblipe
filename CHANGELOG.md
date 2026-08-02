@@ -11,7 +11,7 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 - Notifications ponctuelles façon pop-up (haut droite de l'écran, empilables, fermeture par croix ou touche Échap) pour les confirmations d'envoi/mise à jour Notion et de sauvegarde de configuration — accessibles (`role="status"`/`"alert"` selon la gravité, `aria-live` adapté, focus jamais volé à l'utilisateur) ; les indicateurs de progression (recherche ISBN, import en masse, génération IA) restent affichés en ligne, inchangés
 
 ### Changed
-- Champ Résumé : la teinte de fond appliquée aux champs auto-remplis n'est plus utilisée sur ce champ (seul un `<textarea>` parmi les champs bibliographiques) — jugée superflue sur un pavé de texte long, le badge de source suffit
+- Carte « Données bibliographiques » (Titre, Auteur, Éditeur, Date édition, Langue, Pages, Format, Collection, Genre, Résumé, Couverture) : la teinte de fond appliquée aux champs auto-remplis est retirée, seul le badge de source (ISBN générique ou BnF/OpenLibrary/Google Books/SUDOC selon la provenance réelle) reste affiché — inchangé pour les autres cartes (IA, Notion)
 
 ### Fixed
 - Badge de source (BnF/OpenLibrary/Google Books/SUDOC) jamais affiché sur le champ Résumé une fois rempli : le sélecteur CSS ne révélait le badge que pour un `input.prefilled`, alors que Résumé est le seul champ bibliographique rendu en `<textarea>` — seule la couleur de fond apparaissait, sans l'étiquette de source

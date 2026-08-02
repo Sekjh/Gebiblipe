@@ -56,10 +56,6 @@ button.outline { background: transparent; color: var(--text); border: 1px solid 
 .hidden { display: none; }
 #form-section { display: none; }
 .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.prefilled { background: color-mix(in srgb, var(--bg2) 60%, #2563eb 8%); border-color: color-mix(in srgb, var(--border) 50%, #2563eb 25%); }
-/* Résumé (seul champ bibliographique en textarea) : le badge de source suffit, la teinte de
-   fond sur un pavé de texte long est jugée superflue — contrairement aux champs courts (input). */
-textarea.prefilled { background: var(--bg2); border-color: var(--border); }
 .ai-filled { background: color-mix(in srgb, var(--bg2) 80%, #7c5cbf 12%); border-color: color-mix(in srgb, var(--border) 50%, #7c5cbf 30%); }
 .notion-filled { background: color-mix(in srgb, var(--bg2) 60%, #d97706 8%); border-color: color-mix(in srgb, var(--border) 50%, #d97706 25%); }
 .lbl-src { display: none; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 1px 5px; border-radius: 3px; vertical-align: middle; margin-left: 4px; background: color-mix(in srgb, var(--bg2) 50%, #2563eb 20%); color: color-mix(in srgb, var(--muted) 60%, #2563eb 60%); }
