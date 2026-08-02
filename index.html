@@ -11,7 +11,7 @@
 <div id="toast-container"></div>
 
 <div class="container">
-  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.61.0 — 2026-08-02</span></h1>
+  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.62.0 — 2026-08-02</span></h1>
   <p class="header-caps">ISBN (13 et 10) et ISSN (FR) — sources :
     <span class="lbl-src lbl-src--bnf">BnF</span>
     <span class="lbl-src lbl-src--openlibrary">OpenLibrary</span>
@@ -272,6 +272,19 @@
     </div>
         <div style="font-size:12px;line-height:1.8;">
       <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+        <span style="font-weight:600;color:var(--text);">v0.62.0</span>
+        <span style="color:var(--muted);margin-left:6px;">2026-08-02</span>
+        <div style="margin-top:8px;">
+          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Notifications</div>
+          <div style="color:var(--muted);">• Alertes ponctuelles ajoutées pour le chargement depuis Notion, le résultat de recherche ISBN/ISSN, la détection de doublon, la complétion de champs depuis les sources et les échecs de suggestion IA</div>
+          <div style="color:var(--muted);">• Toasts de succès désormais persistants comme les avertissements/erreurs (seuls les toasts d'info s'effacent automatiquement) ; 3 au maximum empilés</div>
+          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Corrections</div>
+          <div style="color:var(--muted);">• Chargement depuis Notion : le champ couverture ne reste plus affiché vide (avec le badge « Notion ») quand la fiche n'a pas d'image</div>
+          <div style="color:var(--muted);">• Bouton « Compléter les champs avec les sources bibliothéquaires » reste disponible après un premier clic au lieu de disparaître</div>
+          <div style="color:var(--muted);">• Suggestion de thème IA : message d'erreur clair au lieu d'une erreur de parsing JSON brute et incompréhensible</div>
+        </div>
+      </div>
+      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
         <span style="font-weight:600;color:var(--text);">v0.61.0</span>
         <span style="color:var(--muted);margin-left:6px;">2026-08-02</span>
         <div style="margin-top:8px;">
@@ -284,7 +297,7 @@
           <div style="color:var(--muted);">• Badge de source jamais affiché sur le champ Résumé (seul champ bibliographique en textarea, non couvert par le sélecteur CSS)</div>
         </div>
       </div>
-      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+      <div style="padding:0.75rem 1rem;">
         <span style="font-weight:600;color:var(--text);">v0.60.1</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-18</span>
         <div style="margin-top:8px;">
@@ -292,19 +305,6 @@
           <div style="color:var(--muted);">• Numéro de version GEBIBLIPE envoyé à Notion resté figé à 0.58.0 alors que l'application était déjà en v0.60.0 : l'étape de release ne mettait à jour que la page, pas la source dédiée — corrigé et sécurisé pour les prochaines releases</div>
         </div>
       </div>
-      <div style="padding:0.75rem 1rem;">
-        <span style="font-weight:600;color:var(--text);">v0.60.0</span>
-        <span style="color:var(--muted);margin-left:6px;">2026-07-18</span>
-        <div style="margin-top:8px;">
-          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Recherche ISSN</div>
-          <div style="color:var(--muted);">• Recherche bibliographique par ISSN français (BnF, SUDOC) en plus de l'ISBN, détection automatique du type d'identifiant</div>
-          <div style="color:var(--muted);">• Nouveau thème « Presse & périodiques » pour classer les revues et journaux</div>
-          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Couvertures</div>
-          <div style="color:var(--muted);">• Fiabilisation de la détection des couvertures OpenLibrary (l'ancienne heuristique ne détectait jamais l'absence de couverture)</div>
-          <div style="color:var(--muted);">• La cover de page Notion utilise désormais l'image OpenLibrary haute résolution (OLID, repli ISBN)</div>
-        </div>
-      </div>
-    </div>
     </div>
   </div>
 </div>

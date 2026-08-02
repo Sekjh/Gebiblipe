@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.62.0] — 2026-08-02
+
 ### Added
 - Alertes ponctuelles (toasts) ajoutées pour : chargement d'une fiche depuis Notion, résultat de recherche ISBN/ISSN (trouvé ou non), détection de doublon (à la recherche et à l'envoi), champs complétés depuis les sources bibliographiques, suggestion de thème hors liste, et échecs de suggestion de thème / génération de fiche par l'IA — en complément des messages de statut déjà affichés dans le formulaire, inchangés
 
@@ -312,7 +316,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.61.0...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.62.0...HEAD
+[0.62.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.61.0...v0.62.0
 [0.61.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.60.1...v0.61.0
 [0.60.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.60.0...v0.60.1
 [0.60.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.1...v0.60.0
