@@ -66,7 +66,8 @@ button.outline { background: transparent; color: var(--text); border: 1px solid 
 .lbl-src--google { background: color-mix(in srgb, var(--bg2) 50%, var(--src-google) 20%); color: color-mix(in srgb, var(--muted) 60%, var(--src-google) 60%); }
 .lbl-src--openlibrary { background: color-mix(in srgb, var(--bg2) 50%, var(--src-openlibrary) 20%); color: color-mix(in srgb, var(--muted) 60%, var(--src-openlibrary) 60%); }
 .lbl-src--sudoc { background: color-mix(in srgb, var(--bg2) 50%, var(--src-sudoc) 20%); color: color-mix(in srgb, var(--muted) 60%, var(--src-sudoc) 60%); }
-.field:has(input.prefilled) .lbl-src:not(.lbl-src--ia):not(.lbl-src--notion) { display: inline; }
+.field:has(input.prefilled) .lbl-src:not(.lbl-src--ia):not(.lbl-src--notion),
+.field:has(textarea.prefilled) .lbl-src:not(.lbl-src--ia):not(.lbl-src--notion) { display: inline; }
 .field:has(select.ai-filled) .lbl-src--ia,
 .field:has(textarea.ai-filled) .lbl-src--ia { display: inline; }
 .field:has(input.notion-filled) .lbl-src--notion,
