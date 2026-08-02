@@ -188,7 +188,7 @@ describe('sendRecord', () => {
     expect(result.ok).toBe(true);
     const body = JSON.parse(fetch.mock.calls[0][1].body);
     expect(body.properties['Statut'].select.name).toBe('Lu');
-    expect(body.properties['Date de lecture'].date.start).toBe('2024-06-01');
+    expect(body.properties['Date de lecture'].rich_text[0].text.content).toBe('Juin 2024');
     expect(body.properties['Fiche de lecture'].rich_text[0].text.content).toBe('Ma fiche.');
     expect(body.properties['Collection (livre)'].checkbox).toBe(true);
   });

@@ -10,9 +10,6 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 - Résumé complété automatiquement via OpenLibrary (`entry.details.description`) en plus de Google Books, avec repli sur la zone Unimarc 330 (résumé/note de contenu) des notices BnF/SUDOC quand elle existe (vérifié en direct : quasi jamais présente pour un livre de commerce courant, mais sans coût à extraire) ; champ activé par défaut dans les champs bibliographiques configurables (`defaultOn: true`)
 - Notifications ponctuelles façon pop-up (haut droite de l'écran, empilables, fermeture par croix ou touche Échap) pour les confirmations d'envoi/mise à jour Notion et de sauvegarde de configuration — accessibles (`role="status"`/`"alert"` selon la gravité, `aria-live` adapté, focus jamais volé à l'utilisateur) ; les indicateurs de progression (recherche ISBN, import en masse, génération IA) restent affichés en ligne, inchangés
 
-### Changed
-- Propriété Notion « Date de lecture » migrée de texte libre (`rich_text`, ex. « Juin 2024 ») vers une propriété de type Date (`date.start`, ex. `2024-06-01` — jour fixé au 1er faute de précision réelle) ; nécessite de changer le type de la colonne dans Notion en parallèle de cette mise à jour, sans quoi le champ est temporairement omis des envois (détecté comme conflit de type, sans erreur)
-
 ---
 
 ## [0.60.1] — 2026-07-18

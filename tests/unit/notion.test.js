@@ -204,7 +204,7 @@ describe('doSend', () => {
     expect(body.properties['Nom'].title[0].text.content).toBe('Le Capital');
     expect(body.properties['Auteur'].rich_text[0].text.content).toBe('Karl Marx');
     expect(body.properties['Pages'].number).toBe(900);
-    expect(body.properties['Date de lecture'].date.start).toBe('2024-06-01');
+    expect(body.properties['Date de lecture'].rich_text[0].text.content).toBe('Juin 2024');
     expect(body.properties['Collection (livre)'].checkbox).toBe(false);
     expect(body.properties['Version GEBIBLIPE'].rich_text[0].text.content).toBe(APP_VERSION);
     expect(body.properties['Saisie manuelle'].checkbox).toBe(false);
@@ -441,24 +441,6 @@ describe('buildProps', () => {
     const props = buildProps(get, cb, { conflicts: [] }, { manualEntry: true, sourceIds: { ark: 'ark:/123' } });
     expect(props['Saisie manuelle'].checkbox).toBe(true);
     expect(props['ARK BnF'].rich_text[0].text.content).toBe('ark:/123');
-  });
-
-  test("'Date de lecture' : mois + année → date ISO au 1er du mois", () => {
-    const get = id => ({ 'f-titre': 'Titre', 'f-datelu-mois': 'Mars', 'f-datelu-annee': '2023' }[id] || '');
-    const props = buildProps(get, () => false, { conflicts: [] });
-    expect(props['Date de lecture'].date.start).toBe('2023-03-01');
-  });
-
-  test("'Date de lecture' : année seule (mois non choisi) → repli sur janvier", () => {
-    const get = id => ({ 'f-titre': 'Titre', 'f-datelu-annee': '2023' }[id] || '');
-    const props = buildProps(get, () => false, { conflicts: [] });
-    expect(props['Date de lecture'].date.start).toBe('2023-01-01');
-  });
-
-  test("'Date de lecture' : ni mois ni année → propriété omise", () => {
-    const get = id => ({ 'f-titre': 'Titre' }[id] || '');
-    const props = buildProps(get, () => false, { conflicts: [] });
-    expect(props['Date de lecture']).toBeUndefined();
   });
 });
 

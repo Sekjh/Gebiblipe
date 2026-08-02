@@ -12,30 +12,6 @@ export function setCurrentPageId(id) { _currentPageId = id; }
 export function clearCurrentPageId() { _currentPageId = null; }
 export function getCurrentPageId() { return _currentPageId; }
 
-// La propriété Notion « Date de lecture » est de type date (précision mois/année, jour fixé au
-// 1er faute de précision réelle) — le sélecteur #f-datelu-mois du formulaire utilise des noms de
-// mois français en toutes lettres comme valeurs, il faut donc les convertir vers/depuis l'index
-// numérique attendu par une date ISO.
-const READING_MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-
-// Construit la date ISO envoyée à Notion à partir des sélecteurs mois/année du formulaire.
-// Sans année, aucune date valide n'est constructible (retourne null → propriété omise) ; avec
-// une année seule (mois non choisi), le mois est fixé à janvier plutôt que de perdre l'info.
-function readingDateToIso(month, year) {
-  if (!year) return null;
-  const idx = month ? READING_MONTHS_FR.indexOf(month) : 0;
-  const mm = String((idx >= 0 ? idx : 0) + 1).padStart(2, '0');
-  return `${year}-${mm}-01`;
-}
-
-// Relit la date ISO renvoyée par Notion (avec ou sans composante horaire) vers mois/année.
-function readingDateFromIso(iso) {
-  if (!iso) return { datem: '', datey: '' };
-  const [datePart] = iso.split('T');
-  const [y, m] = datePart.split('-');
-  return { datem: m ? (READING_MONTHS_FR[parseInt(m, 10) - 1] || '') : '', datey: y || '' };
-}
-
 function mapNotionToBook(page) {
   const p = page.properties || {};
   const txt  = key => p[key]?.rich_text?.[0]?.plain_text || '';
@@ -45,7 +21,10 @@ function mapNotionToBook(page) {
   const chk  = key => p[key]?.checkbox || false;
   const msel = key => (p[key]?.multi_select || []).map(o => o.name).join(', ');
 
-  const { datem, datey } = readingDateFromIso(p['Date de lecture']?.date?.start);
+  const datelu = txt('Date de lecture');
+  const parts  = datelu.trim().split(/\s+/);
+  const datem  = parts[0] || '';
+  const datey  = parts[1] || '';
 
   return {
     isbn:        txt('ISBN'),
@@ -271,7 +250,7 @@ export function buildProps(get, cb, sync, { manualEntry = isManualEntry(), sourc
     'Sous-thème':          get('f-soustheme') ? { select: { name: get('f-soustheme') } } : undefined,
     'Statut':              { select: { name: get('f-statut') || 'À lire' } },
     'Priorité':            get('f-priorite')  ? { select: { name: get('f-priorite') } }  : undefined,
-    'Date de lecture':     (() => { const iso = readingDateToIso(get('f-datelu-mois'), get('f-datelu-annee')); return iso ? { date: { start: iso } } : undefined; })(),
+    'Date de lecture':     { rich_text: [{ text: { content: (()=>{ const m=get('f-datelu-mois'),a=get('f-datelu-annee'); return m&&a?m+' '+a:(m||a||''); })() } }] },
     'Note':                get('f-note')  ? { select: { name: get('f-note') } }  : undefined,
     'État':                get('f-etat')  ? { select: { name: get('f-etat') } }  : undefined,
     'Collection (livre)':  { checkbox: cb('f-collection') },
