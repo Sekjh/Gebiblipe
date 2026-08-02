@@ -9,6 +9,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 ### Added
 - Alertes ponctuelles (toasts) ajoutées pour : chargement d'une fiche depuis Notion, résultat de recherche ISBN/ISSN (trouvé ou non), détection de doublon (à la recherche et à l'envoi), champs complétés depuis les sources bibliographiques, suggestion de thème hors liste, et échecs de suggestion de thème / génération de fiche par l'IA — en complément des messages de statut déjà affichés dans le formulaire, inchangés
 
+### Changed
+- Toasts de succès (vert) désormais persistants comme les avertissements/erreurs, au lieu de s'effacer automatiquement après 5s (seul le type « info » continue à s'auto-effacer) ; au-delà de 3 toasts empilés, le plus ancien est retiré à l'arrivée d'un nouveau pour ne pas envahir l'écran
+
 ### Fixed
 - Chargement depuis Notion : le champ couverture pouvait rester affiché vide (avec le badge « Notion ») quand la fiche Notion n'a pas d'image enregistrée — logique de masquage unifiée avec la recherche ISBN classique via un helper `renderCover()` partagé
 - Bouton « Compléter les champs avec les sources bibliothéquaires » disparaissait définitivement après un premier clic au lieu de rester disponible pour de nouvelles tentatives

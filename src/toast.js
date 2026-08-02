@@ -7,11 +7,22 @@
 // déplacer le focus à l'apparition (WAI-ARIA Authoring Practices — un toast ne doit pas interrompre
 // la saisie en cours) ; le bouton de fermeture reste atteignable au clavier (Tab) pour qui veut le
 // fermer explicitement plutôt que d'attendre l'auto-effacement.
-const AUTO_DISMISS_MS = { success: 5000, info: 5000, warning: 0, error: 0 };
+//
+// Seuls les toasts "info" s'auto-effacent : succès/warning/erreur restent jusqu'à fermeture
+// manuelle, car ce sont des confirmations qu'on veut pouvoir relire après coup (ex. plusieurs
+// entrées traitées à la suite). Au-delà de MAX_TOASTS empilés, le plus ancien est retiré pour
+// éviter d'envahir l'écran.
+const AUTO_DISMISS_MS = { success: 0, info: 5000, warning: 0, error: 0 };
+const MAX_TOASTS = 3;
+const activeToasts = [];
 
 export function showToast(message, type = 'info') {
   const root = document.getElementById('toast-container');
   if (!root || !message) return null;
+
+  if (activeToasts.length >= MAX_TOASTS) {
+    activeToasts.shift().dismiss();
+  }
 
   const toast = document.createElement('div');
   toast.className = `toast toast--${type}`;
@@ -30,15 +41,20 @@ export function showToast(message, type = 'info') {
   closeBtn.textContent = '✕';
 
   let timer = null;
+  const entry = { dismiss: null };
   const dismiss = () => {
     if (timer) clearTimeout(timer);
     toast.remove();
+    const idx = activeToasts.indexOf(entry);
+    if (idx !== -1) activeToasts.splice(idx, 1);
   };
+  entry.dismiss = dismiss;
   closeBtn.addEventListener('click', dismiss);
   toast.addEventListener('keydown', e => { if (e.key === 'Escape') dismiss(); });
 
   toast.append(text, closeBtn);
   root.appendChild(toast);
+  activeToasts.push(entry);
 
   const ms = AUTO_DISMISS_MS[type] ?? AUTO_DISMISS_MS.info;
   if (ms > 0) timer = setTimeout(dismiss, ms);

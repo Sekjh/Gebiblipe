@@ -46,16 +46,25 @@ describe('showToast', () => {
     expect(document.querySelector('#toast-container .toast')).toBeNull();
   });
 
-  test('succès/info disparaissent automatiquement après un délai, pas erreur/avertissement', () => {
+  test('seul info disparaît automatiquement après un délai, pas succès/erreur/avertissement', () => {
     vi.useFakeTimers();
+    showToast('Info', 'info');
     showToast('Succès', 'success');
     showToast('Erreur', 'error');
-    showToast('Avertissement', 'warning');
     expect(document.querySelectorAll('#toast-container .toast').length).toBe(3);
     vi.advanceTimersByTime(6000);
     expect(document.querySelectorAll('#toast-container .toast').length).toBe(2);
+    expect(document.querySelector('.toast--success')).toBeTruthy();
     expect(document.querySelector('.toast--error')).toBeTruthy();
-    expect(document.querySelector('.toast--warning')).toBeTruthy();
+  });
+
+  test('au-delà de 3 toasts empilés, le plus ancien est retiré', () => {
+    showToast('Premier', 'success');
+    showToast('Second', 'success');
+    showToast('Troisième', 'success');
+    showToast('Quatrième', 'success');
+    const texts = [...document.querySelectorAll('.toast-text')].map(t => t.textContent);
+    expect(texts).toEqual(['Second', 'Troisième', 'Quatrième']);
   });
 
   test('sans #toast-container dans le DOM, ne lève pas et retourne null', () => {
