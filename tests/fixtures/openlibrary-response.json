@@ -8,7 +8,8 @@
       "number_of_pages": 3428,
       "key": "/books/OL7358935M",
       "identifiers": { "oclc": ["12345678"] },
-      "languages": [{ "key": "/languages/fre" }]
+      "languages": [{ "key": "/languages/fre" }],
+      "description": { "value": "[back cover] En quête du temps perdu, le narrateur explore la mémoire et le passé.", "type": "/type/text" }
     },
     "thumbnail_url": "https://covers.openlibrary.org/b/id/12345-S.jpg"
   }

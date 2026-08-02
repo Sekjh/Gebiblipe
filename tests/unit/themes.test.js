@@ -40,10 +40,10 @@ describe('THEMES', () => {
 });
 
 describe('getExpectedProps', () => {
-  const ALLOWED_TYPES = ['rich_text', 'number', 'select', 'checkbox', 'multi_select'];
+  const ALLOWED_TYPES = ['rich_text', 'number', 'select', 'checkbox', 'multi_select', 'date'];
 
-  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 25 propriétés (20 + 5 identifiants pivots toujours inclus)', () => {
-    expect(Object.keys(getExpectedProps()).length).toBe(25);
+  test('avec la config par défaut (aucune préférence enregistrée), contient exactement 26 propriétés (21 + 5 identifiants pivots toujours inclus)', () => {
+    expect(Object.keys(getExpectedProps()).length).toBe(26);
   });
 
   test("'Version GEBIBLIPE' est de type 'rich_text' et toujours présente", () => {
@@ -116,6 +116,10 @@ describe('propSchema', () => {
 
   test("multi_select → { multi_select: {} }", () => {
     expect(propSchema('multi_select')).toEqual({ multi_select: {} });
+  });
+
+  test("date → { date: {} }", () => {
+    expect(propSchema('date')).toEqual({ date: {} });
   });
 
   test("type inconnu → fallback { rich_text: {} }", () => {

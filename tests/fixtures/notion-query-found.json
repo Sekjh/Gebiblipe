@@ -15,7 +15,7 @@
       "Sous-thème": { "select": { "name": "Histoire économique" } },
       "Statut": { "select": { "name": "Lu" } },
       "Priorité": { "select": null },
-      "Date de lecture": { "rich_text": [{ "plain_text": "Juin 2024" }] },
+      "Date de lecture": { "date": { "start": "2024-06-01" } },
       "Note": { "select": { "name": "★★★★★" } },
       "État": { "select": null },
       "Collection (livre)": { "checkbox": false },

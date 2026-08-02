@@ -21,7 +21,7 @@ export const BIB_FIELDS = [
   { key: 'format',      id: 'f-format',        label: 'Format / reliure',      notionProp: 'Format',       notionType: 'rich_text',    defaultOn: false, circle: 2 },
   { key: 'collection',  id: 'f-collection-ed', label: 'Collection',            notionProp: 'Collection',   notionType: 'rich_text',    defaultOn: true,  circle: 3 },
   { key: 'categories',  id: 'f-genre',         label: 'Genre',                 notionProp: 'Genre',        notionType: 'multi_select', defaultOn: false, circle: 3 },
-  { key: 'description', id: 'f-resume',        label: 'Résumé',                notionProp: 'Résumé',       notionType: 'rich_text',    defaultOn: false, circle: 3 },
+  { key: 'description', id: 'f-resume',        label: 'Résumé',                notionProp: 'Résumé',       notionType: 'rich_text',    defaultOn: true,  circle: 3 },
 ];
 
 // Identifiants pivots techniques collectés en best-effort par les fetchers (src/fetchers.js) dans

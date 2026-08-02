@@ -78,7 +78,7 @@ describe('PIVOT_FIELDS', () => {
 describe('getActiveBibFields', () => {
   test('sans préférence enregistrée, retourne les champs defaultOn', () => {
     const active = getActiveBibFields().map(f => f.key);
-    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'editeur', 'language', 'pages'].sort());
+    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'description', 'editeur', 'language', 'pages'].sort());
   });
 
   test('respecte la préférence enregistrée dans localStorage', () => {
@@ -90,7 +90,7 @@ describe('getActiveBibFields', () => {
   test('ignore une valeur localStorage invalide (JSON corrompu) et retombe sur les défauts', () => {
     localStorage.setItem('bib_fields', 'pas-du-json');
     const active = getActiveBibFields().map(f => f.key);
-    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'editeur', 'language', 'pages'].sort());
+    expect(active.sort()).toEqual(['collection', 'couverture', 'dateed', 'description', 'editeur', 'language', 'pages'].sort());
   });
 
   test('une liste vide désactive tous les champs bibliographiques', () => {

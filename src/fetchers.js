@@ -54,6 +54,10 @@ function parseUnimarcFields(rec, { appendSubtitle = false, isSerial = false } = 
   fields.pages = isSerial ? '' : gf('215','a');
   const lang = gf('101','a');
   if (lang) fields.language = normalizeLanguage(lang);
+  // Zone 330 $a = résumé/note de contenu en Unimarc bibliographique — rarement renseignée sur les
+  // notices de dépôt légal BnF/SUDOC pour un livre de commerce courant (vérifié en direct sur
+  // plusieurs titres : jamais présente), mais sans coût à extraire si elle existe (thèses, etc.).
+  fields.description = gf('330','a');
   return fields;
 }
 
@@ -105,6 +109,9 @@ export async function fetchOpenLibrary(raw, b) {
       const det=entry.details;
       b.titre=det.title||''; b.auteur=det.authors?.map(a=>a.name).join(', ')||'';
       b.editeur=det.publishers?.[0]||''; b.dateed=det.publish_date||''; b.pages=det.number_of_pages||'';
+      // description est soit une chaîne, soit un objet { value, type } — vérifié en direct
+      // (souvent le texte de 4e de couverture, ex. "[back cover] Harry Potter thinks he is...").
+      b.description = typeof det.description === 'string' ? det.description : (det.description?.value || '');
       if(entry.thumbnail_url) b.couverture=entry.thumbnail_url.replace('-S.','-M.');
       const langRaw = det.languages?.[0]?.key?.replace('/languages/','');
       if (langRaw) b.language = normalizeLanguage(langRaw);

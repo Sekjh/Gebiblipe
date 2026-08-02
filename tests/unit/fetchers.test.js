@@ -61,6 +61,7 @@ describe('fetchBnF', () => {
     expect(b.collection).toBe('Bibliothèque marxiste');
     expect(b.pages).toBe('900');
     expect(b.language).toBe('fr');
+    expect(b.description).toBe("Une critique systématique de l'économie politique.");
     expect(b.sourceIds.ark).toBe('https://catalogue.bnf.fr/ark:/12148/cb31570438x');
   });
 
@@ -232,8 +233,18 @@ describe('fetchOpenLibrary', () => {
     expect(b.auteur).toContain('Proust');
     expect(b.couverture).toContain('-M.');
     expect(b.language).toBe('fr');
+    expect(b.description).toContain('En quête du temps perdu');
     expect(b.sourceIds.olid).toBe('OL7358935M');
     expect(b.sourceIds.oclc).toBe('12345678');
+  });
+
+  test('gère une description sous forme de chaîne simple (pas seulement { value })', async () => {
+    fetch.mockResolvedValueOnce({ ok: true, json: async () => ({
+      'ISBN:9782070360024': { details: { title: 'X', description: 'Résumé en texte brut.' } },
+    }) });
+    const b = { isbn: '9782070360024' };
+    await fetchOpenLibrary('9782070360024', b);
+    expect(b.description).toBe('Résumé en texte brut.');
   });
 
   test('ne positionne pas b.source quand la clé ISBN est absente', async () => {

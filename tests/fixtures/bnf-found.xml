@@ -27,6 +27,9 @@
           <datafield tag="101">
             <subfield code="a">fre</subfield>
           </datafield>
+          <datafield tag="330">
+            <subfield code="a">Une critique systématique de l'économie politique.</subfield>
+          </datafield>
         </record>
       </recordData>
     </record>

@@ -185,6 +185,7 @@ const DOM_FORM = `
   <textarea id="f-comment"></textarea>
   <img id="cover-img" src="" style="display:none" />
   <p id="notion-status"></p>
+  <div id="toast-container"></div>
 `;
 
 // ─── doSend ──────────────────────────────────────────────────────────────────
@@ -203,7 +204,7 @@ describe('doSend', () => {
     expect(body.properties['Nom'].title[0].text.content).toBe('Le Capital');
     expect(body.properties['Auteur'].rich_text[0].text.content).toBe('Karl Marx');
     expect(body.properties['Pages'].number).toBe(900);
-    expect(body.properties['Date de lecture'].rich_text[0].text.content).toBe('Juin 2024');
+    expect(body.properties['Date de lecture'].date.start).toBe('2024-06-01');
     expect(body.properties['Collection (livre)'].checkbox).toBe(false);
     expect(body.properties['Version GEBIBLIPE'].rich_text[0].text.content).toBe(APP_VERSION);
     expect(body.properties['Saisie manuelle'].checkbox).toBe(false);
@@ -269,7 +270,7 @@ describe('doSend', () => {
   test('affiche le message de succès dans notion-status', async () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     await doSend(CFG, { created: [], conflicts: [] });
-    expect(document.getElementById('notion-status').textContent).toContain('Ajouté dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Ajouté dans Notion');
   });
 
   test('affiche une erreur Notion dans notion-status sur réponse non-ok', async () => {
@@ -279,7 +280,7 @@ describe('doSend', () => {
       json: async () => ({ message: 'Propriété inconnue' }),
     });
     await doSend(CFG, { created: [], conflicts: [] });
-    expect(document.getElementById('notion-status').textContent).toContain('Propriété inconnue');
+    expect(document.getElementById('toast-container').textContent).toContain('Propriété inconnue');
   });
 });
 
@@ -314,7 +315,7 @@ describe('updatePageFull', () => {
   test('affiche le message de succès dans notion-status', async () => {
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     await updatePageFull('page-abc-123', CFG, { created: [], conflicts: [] });
-    expect(document.getElementById('notion-status').textContent).toContain('Mis à jour dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Mis à jour dans Notion');
   });
 });
 
@@ -371,7 +372,7 @@ describe('sendToNotion — routage', () => {
     document.getElementById('f-titre').value = '';
     await sendToNotion();
     expect(fetch).not.toHaveBeenCalled();
-    expect(document.getElementById('notion-status').textContent).toContain('obligatoire');
+    expect(document.getElementById('toast-container').textContent).toContain('obligatoire');
   });
 
   test("autorise l'envoi avec seulement l'ISBN renseigné (Titre et Auteur vides)", async () => {
@@ -401,7 +402,7 @@ describe('sendToNotion — routage', () => {
     await sendToNotion();
     const postCall = fetch.mock.calls.find(c => c[1]?.method === 'POST' && c[0].includes('/v1/pages'));
     expect(postCall).toBeTruthy();
-    expect(document.getElementById('notion-status').textContent).toContain('Ajouté dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Ajouté dans Notion');
   });
 
   test('avec _currentPageId → PATCH /v1/pages/{id} (mise à jour)', async () => {
@@ -412,13 +413,13 @@ describe('sendToNotion — routage', () => {
     await sendToNotion();
     const patchCall = fetch.mock.calls.find(c => c[1]?.method === 'PATCH' && c[0].includes('/v1/pages/page-xyz-789'));
     expect(patchCall).toBeTruthy();
-    expect(document.getElementById('notion-status').textContent).toContain('Mis à jour dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Mis à jour dans Notion');
   });
 
   test("affiche un message de configuration quand le token est absent", async () => {
     localStorage.removeItem('notion_token');
     await sendToNotion();
-    expect(document.getElementById('notion-status').textContent).toContain('Configure');
+    expect(document.getElementById('toast-container').textContent).toContain('Configure');
     expect(fetch).not.toHaveBeenCalled();
   });
 });
@@ -440,6 +441,24 @@ describe('buildProps', () => {
     const props = buildProps(get, cb, { conflicts: [] }, { manualEntry: true, sourceIds: { ark: 'ark:/123' } });
     expect(props['Saisie manuelle'].checkbox).toBe(true);
     expect(props['ARK BnF'].rich_text[0].text.content).toBe('ark:/123');
+  });
+
+  test("'Date de lecture' : mois + année → date ISO au 1er du mois", () => {
+    const get = id => ({ 'f-titre': 'Titre', 'f-datelu-mois': 'Mars', 'f-datelu-annee': '2023' }[id] || '');
+    const props = buildProps(get, () => false, { conflicts: [] });
+    expect(props['Date de lecture'].date.start).toBe('2023-03-01');
+  });
+
+  test("'Date de lecture' : année seule (mois non choisi) → repli sur janvier", () => {
+    const get = id => ({ 'f-titre': 'Titre', 'f-datelu-annee': '2023' }[id] || '');
+    const props = buildProps(get, () => false, { conflicts: [] });
+    expect(props['Date de lecture'].date.start).toBe('2023-01-01');
+  });
+
+  test("'Date de lecture' : ni mois ni année → propriété omise", () => {
+    const get = id => ({ 'f-titre': 'Titre' }[id] || '');
+    const props = buildProps(get, () => false, { conflicts: [] });
+    expect(props['Date de lecture']).toBeUndefined();
   });
 });
 

@@ -40,6 +40,7 @@ const FORM_DOM = `
   <textarea id="f-comment"></textarea>
   <img id="cover-img" src="" style="display:none" />
   <p id="notion-status"></p>
+  <div id="toast-container"></div>
 `;
 
 beforeEach(() => {
@@ -83,7 +84,7 @@ describe('sendToNotion — mode création (pas de _currentPageId)', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => dbFull })
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     await sendToNotion();
-    expect(document.getElementById('notion-status').textContent).toContain('Ajouté dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Ajouté dans Notion');
     const postCall = fetch.mock.calls.find(c => c[1]?.method === 'POST' && c[0].includes('/v1/pages'));
     expect(postCall).toBeTruthy();
   });
@@ -98,7 +99,7 @@ describe('sendToNotion — mode mise à jour (avec _currentPageId)', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => dbFull })
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     await sendToNotion();
-    expect(document.getElementById('notion-status').textContent).toContain('Mis à jour dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Mis à jour dans Notion');
     const patchCall = fetch.mock.calls.find(c => c[1]?.method === 'PATCH' && c[0].includes('/v1/pages/page-abc-123'));
     expect(patchCall).toBeTruthy();
   });
@@ -110,7 +111,7 @@ describe('Credentials absents', () => {
   test("affiche un message de configuration quand le token est absent", async () => {
     localStorage.removeItem('notion_token');
     await sendToNotion();
-    expect(document.getElementById('notion-status').textContent).toContain('Configure');
+    expect(document.getElementById('toast-container').textContent).toContain('Configure');
     expect(fetch).not.toHaveBeenCalled();
   });
 });
@@ -134,7 +135,7 @@ describe('Flux doublon send-time — blocs constitutifs', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     setCurrentPageId('page-doublon-xyz');
     await sendToNotion();
-    expect(document.getElementById('notion-status').textContent).toContain('Mis à jour dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Mis à jour dans Notion');
     const patchCall = fetch.mock.calls.find(c => c[1]?.method === 'PATCH' && c[0].includes('/v1/pages/page-doublon-xyz'));
     expect(patchCall).toBeTruthy();
   });
@@ -145,7 +146,7 @@ describe('Flux doublon send-time — blocs constitutifs', () => {
       .mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     clearCurrentPageId();
     await sendToNotion();
-    expect(document.getElementById('notion-status').textContent).toContain('Ajouté dans Notion');
+    expect(document.getElementById('toast-container').textContent).toContain('Ajouté dans Notion');
     const postCall = fetch.mock.calls.find(c => c[1]?.method === 'POST' && c[0].includes('/v1/pages'));
     expect(postCall).toBeTruthy();
   });

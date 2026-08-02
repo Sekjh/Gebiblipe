@@ -19,7 +19,7 @@ export const THEMES = {
 const CORE_EXPECTED_PROPS = {
   'Auteur':                'rich_text',
   'ISBN':                  'rich_text',
-  'Date de lecture':       'rich_text',
+  'Date de lecture':       'date',
   'Fiche de lecture':      'rich_text',
   'Commentaire':           'rich_text',
   'Thème':                 'select',
@@ -53,5 +53,6 @@ export function propSchema(type) {
   if (type === 'select')       return { select: {} };
   if (type === 'checkbox')     return { checkbox: {} };
   if (type === 'multi_select') return { multi_select: {} };
+  if (type === 'date')         return { date: {} };
   return { rich_text: {} };
 }
