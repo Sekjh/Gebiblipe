@@ -11,7 +11,7 @@
 <div id="toast-container"></div>
 
 <div class="container">
-  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.60.1 — 2026-07-18</span></h1>
+  <h1>GEBIBLIPE <span>Gestionnaire de bibliothèque personnelle</span> <span style="font-size:11px;opacity:0.35;margin-left:4px;">v0.61.0 — 2026-08-02</span></h1>
   <p class="header-caps">ISBN (13 et 10) et ISSN (FR) — sources :
     <span class="lbl-src lbl-src--bnf">BnF</span>
     <span class="lbl-src lbl-src--openlibrary">OpenLibrary</span>
@@ -272,6 +272,19 @@
     </div>
         <div style="font-size:12px;line-height:1.8;">
       <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+        <span style="font-weight:600;color:var(--text);">v0.61.0</span>
+        <span style="color:var(--muted);margin-left:6px;">2026-08-02</span>
+        <div style="margin-top:8px;">
+          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Résumé & notifications</div>
+          <div style="color:var(--muted);">• Résumé complété automatiquement via OpenLibrary en plus de Google Books (repli sur la notice BnF/SUDOC si elle en porte un), activé par défaut</div>
+          <div style="color:var(--muted);">• Notifications ponctuelles en haut à droite (fermeture par croix ou touche Échap) pour les confirmations d'envoi Notion et de sauvegarde de configuration</div>
+          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Interface</div>
+          <div style="color:var(--muted);">• Carte « Données bibliographiques » : la teinte de fond des champs auto-remplis est retirée, seul le badge de source reste affiché</div>
+          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Corrections</div>
+          <div style="color:var(--muted);">• Badge de source jamais affiché sur le champ Résumé (seul champ bibliographique en textarea, non couvert par le sélecteur CSS)</div>
+        </div>
+      </div>
+      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
         <span style="font-weight:600;color:var(--text);">v0.60.1</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-18</span>
         <div style="margin-top:8px;">
@@ -279,7 +292,7 @@
           <div style="color:var(--muted);">• Numéro de version GEBIBLIPE envoyé à Notion resté figé à 0.58.0 alors que l'application était déjà en v0.60.0 : l'étape de release ne mettait à jour que la page, pas la source dédiée — corrigé et sécurisé pour les prochaines releases</div>
         </div>
       </div>
-      <div style="padding:0.75rem 1rem;border-bottom:1px solid var(--border);">
+      <div style="padding:0.75rem 1rem;">
         <span style="font-weight:600;color:var(--text);">v0.60.0</span>
         <span style="color:var(--muted);margin-left:6px;">2026-07-18</span>
         <div style="margin-top:8px;">
@@ -289,17 +302,6 @@
           <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Couvertures</div>
           <div style="color:var(--muted);">• Fiabilisation de la détection des couvertures OpenLibrary (l'ancienne heuristique ne détectait jamais l'absence de couverture)</div>
           <div style="color:var(--muted);">• La cover de page Notion utilise désormais l'image OpenLibrary haute résolution (OLID, repli ISBN)</div>
-        </div>
-      </div>
-      <div style="padding:0.75rem 1rem;">
-        <span style="font-weight:600;color:var(--text);">v0.59.1</span>
-        <span style="color:var(--muted);margin-left:6px;">2026-07-17</span>
-        <div style="margin-top:8px;">
-          <div style="font-weight:500;color:var(--text);margin-bottom:3px;">Champs obligatoires</div>
-          <div style="color:var(--muted);">• L'ISBN devient obligatoire en mode recherche (Titre/Auteur redeviennent optionnels), seul le Titre est obligatoire en mode « Nouveau sans ISBN »</div>
-          <div style="color:var(--muted);">• Import en masse : ne vérifie plus que la validité de l'ISBN, déjà garantie par le parsing de la liste collée</div>
-          <div style="font-weight:500;color:var(--text);margin:8px 0 3px;">Corrections</div>
-          <div style="color:var(--muted);">• Recherche bibliographique incomplète pour les livres anciens identifiés par leur seul ISBN-10 : la conversion ne fonctionnait que dans le sens ISBN-13 → ISBN-10, jamais l'inverse</div>
         </div>
       </div>
     </div>

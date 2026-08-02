@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.61.0] — 2026-08-02
+
 ### Added
 - Résumé complété automatiquement via OpenLibrary (`entry.details.description`) en plus de Google Books, avec repli sur la zone Unimarc 330 (résumé/note de contenu) des notices BnF/SUDOC quand elle existe (vérifié en direct : quasi jamais présente pour un livre de commerce courant, mais sans coût à extraire) ; champ activé par défaut dans les champs bibliographiques configurables (`defaultOn: true`)
 - Notifications ponctuelles façon pop-up (haut droite de l'écran, empilables, fermeture par croix ou touche Échap) pour les confirmations d'envoi/mise à jour Notion et de sauvegarde de configuration — accessibles (`role="status"`/`"alert"` selon la gravité, `aria-live` adapté, focus jamais volé à l'utilisateur) ; les indicateurs de progression (recherche ISBN, import en masse, génération IA) restent affichés en ligne, inchangés
@@ -15,6 +19,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ### Fixed
 - Badge de source (BnF/OpenLibrary/Google Books/SUDOC) jamais affiché sur le champ Résumé une fois rempli : le sélecteur CSS ne révélait le badge que pour un `input.prefilled`, alors que Résumé est le seul champ bibliographique rendu en `<textarea>` — seule la couleur de fond apparaissait, sans l'étiquette de source
+
+### Security
+- Correction de 2 vulnérabilités high (`brace-expansion`, `postcss`, dépendances de développement uniquement) via `npm audit fix`
 
 ---
 
@@ -294,7 +301,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.60.1...HEAD
+[Unreleased]: https://github.com/Sekjh/Biblioth-que/compare/v0.61.0...HEAD
+[0.61.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.60.1...v0.61.0
 [0.60.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.60.0...v0.60.1
 [0.60.0]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.1...v0.60.0
 [0.59.1]: https://github.com/Sekjh/Biblioth-que/compare/v0.59.0...v0.59.1
