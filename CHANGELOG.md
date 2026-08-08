@@ -6,6 +6,9 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+### Changed
+- Liens de comparaison de versions du `CHANGELOG.md` alignés sur le nom canonique du dépôt GitHub (`Gebiblipe` avec un G majuscule)
+
 ---
 
 ## [0.62.1] — 2026-08-08
@@ -326,27 +329,27 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/gebiblipe/compare/v0.62.1...HEAD
-[0.62.1]: https://github.com/Sekjh/gebiblipe/compare/v0.62.0...v0.62.1
-[0.62.0]: https://github.com/Sekjh/gebiblipe/compare/v0.61.0...v0.62.0
-[0.61.0]: https://github.com/Sekjh/gebiblipe/compare/v0.60.1...v0.61.0
-[0.60.1]: https://github.com/Sekjh/gebiblipe/compare/v0.60.0...v0.60.1
-[0.60.0]: https://github.com/Sekjh/gebiblipe/compare/v0.59.1...v0.60.0
-[0.59.1]: https://github.com/Sekjh/gebiblipe/compare/v0.59.0...v0.59.1
-[0.59.0]: https://github.com/Sekjh/gebiblipe/compare/v0.58.0...v0.59.0
-[0.58.0]: https://github.com/Sekjh/gebiblipe/compare/v0.57.0...v0.58.0
-[0.57.0]: https://github.com/Sekjh/gebiblipe/compare/v0.56.1...v0.57.0
-[0.56.1]: https://github.com/Sekjh/gebiblipe/compare/v0.56.0...v0.56.1
-[0.56.0]: https://github.com/Sekjh/gebiblipe/compare/v0.55.0...v0.56.0
-[0.55.0]: https://github.com/Sekjh/gebiblipe/compare/v0.54.1...v0.55.0
-[0.54.1]: https://github.com/Sekjh/gebiblipe/compare/v0.54.0...v0.54.1
-[0.54.0]: https://github.com/Sekjh/gebiblipe/compare/v0.53.0...v0.54.0
-[0.53.0]: https://github.com/Sekjh/gebiblipe/compare/v0.52.0...v0.53.0
-[0.52.0]: https://github.com/Sekjh/gebiblipe/compare/v0.51.0...v0.52.0
-[0.51.0]: https://github.com/Sekjh/gebiblipe/compare/v0.50.3...v0.51.0
-[0.50.3]: https://github.com/Sekjh/gebiblipe/compare/v0.50.2...v0.50.3
-[0.50.2]: https://github.com/Sekjh/gebiblipe/compare/v0.50.1...v0.50.2
-[0.50.1]: https://github.com/Sekjh/gebiblipe/compare/v0.50.0...v0.50.1
-[0.50.0]: https://github.com/Sekjh/gebiblipe/compare/v0.49.0...v0.50.0
-[0.49.0]: https://github.com/Sekjh/gebiblipe/compare/v0.48.0...v0.49.0
-[0.48.0]: https://github.com/Sekjh/gebiblipe/releases/tag/v0.48.0
+[Unreleased]: https://github.com/Sekjh/Gebiblipe/compare/v0.62.1...HEAD
+[0.62.1]: https://github.com/Sekjh/Gebiblipe/compare/v0.62.0...v0.62.1
+[0.62.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.61.0...v0.62.0
+[0.61.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.60.1...v0.61.0
+[0.60.1]: https://github.com/Sekjh/Gebiblipe/compare/v0.60.0...v0.60.1
+[0.60.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.59.1...v0.60.0
+[0.59.1]: https://github.com/Sekjh/Gebiblipe/compare/v0.59.0...v0.59.1
+[0.59.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.58.0...v0.59.0
+[0.58.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.57.0...v0.58.0
+[0.57.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.56.1...v0.57.0
+[0.56.1]: https://github.com/Sekjh/Gebiblipe/compare/v0.56.0...v0.56.1
+[0.56.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.55.0...v0.56.0
+[0.55.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.54.1...v0.55.0
+[0.54.1]: https://github.com/Sekjh/Gebiblipe/compare/v0.54.0...v0.54.1
+[0.54.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.53.0...v0.54.0
+[0.53.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.52.0...v0.53.0
+[0.52.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.51.0...v0.52.0
+[0.51.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.50.3...v0.51.0
+[0.50.3]: https://github.com/Sekjh/Gebiblipe/compare/v0.50.2...v0.50.3
+[0.50.2]: https://github.com/Sekjh/Gebiblipe/compare/v0.50.1...v0.50.2
+[0.50.1]: https://github.com/Sekjh/Gebiblipe/compare/v0.50.0...v0.50.1
+[0.50.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.49.0...v0.50.0
+[0.49.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.48.0...v0.49.0
+[0.48.0]: https://github.com/Sekjh/Gebiblipe/releases/tag/v0.48.0
