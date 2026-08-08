@@ -6,6 +6,10 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ## [Unreleased]
 
+---
+
+## [0.62.2] — 2026-08-08
+
 ### Changed
 - Liens de comparaison de versions du `CHANGELOG.md` alignés sur le nom canonique du dépôt GitHub (`Gebiblipe` avec un G majuscule)
 
@@ -329,7 +333,8 @@ Versioning : [SemVer](https://semver.org/lang/fr/)
 
 ---
 
-[Unreleased]: https://github.com/Sekjh/Gebiblipe/compare/v0.62.1...HEAD
+[Unreleased]: https://github.com/Sekjh/Gebiblipe/compare/v0.62.2...HEAD
+[0.62.2]: https://github.com/Sekjh/Gebiblipe/compare/v0.62.1...v0.62.2
 [0.62.1]: https://github.com/Sekjh/Gebiblipe/compare/v0.62.0...v0.62.1
 [0.62.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.61.0...v0.62.0
 [0.61.0]: https://github.com/Sekjh/Gebiblipe/compare/v0.60.1...v0.61.0
